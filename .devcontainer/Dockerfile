@@ -13,8 +13,6 @@ RUN wget https://go.dev/dl/go1.23.3.linux-amd64.tar.gz \
 
 # Set Go environment variables
 ENV PATH=$PATH:/usr/local/go/bin
-ENV GOPATH=/go
-ENV GOBIN=$GOPATH/bin
 
 USER vscode
 
