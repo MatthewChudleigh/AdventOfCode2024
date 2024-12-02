@@ -14,7 +14,9 @@
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
 			// Add the IDs of extensions you want installed when the container is created.
-			"extensions": []
+			"extensions": [
+				"ms-dotnettools.csdevkit"
+			]
 		}
 	},
 	// Features to add to the dev container. More info: https://containers.dev/features.
