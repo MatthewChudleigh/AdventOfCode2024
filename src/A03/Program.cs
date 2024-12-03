@@ -27,10 +27,11 @@ var dataPath = "/workspaces/AdventOfCode2024/data/A03/A03.1.txt";
 var sumTotal = 0;
 var sequences = File.ReadAllLines(dataPath);
 
-var doing = new A03.Doing();
+var doing = true;
 foreach (var sequence in sequences)
 {
-    var sum = A03.Evaluate(doing, sequence);
+    var sum = 0;
+    (sum, doing) = A03.Evaluate(doing, sequence);
     sumTotal += sum;
 }
 
@@ -40,32 +41,26 @@ static partial class A03
 {
     [GeneratedRegex(@"(?<do>do\(\))|(?<dont>don't\(\))|mul\((?<lhs>\d{1,3}),(?<rhs>\d{1,3})\)", RegexOptions.Compiled)]
     private static partial Regex ReMul();
-
-    public class Doing
-    {
-        public bool IsDoing { get; set; } = true;
-    }
-
-    public static int Evaluate(Doing doing, string sequence)
+    public static (int sum, bool doing) Evaluate(bool doing, string sequence)
     {
         var sum = 0;
         foreach (Match match in ReMul().Matches(sequence))
         {
             if (match.Groups["do"].Success)
             {
-                doing.IsDoing = true;
+                doing = true;
             }
             else if (match.Groups["dont"].Success)
             {
-                doing.IsDoing = false;
+                doing = false;
             }
-            else if (doing.IsDoing)
+            else if (doing)
             {
                 var lhs = Int32.Parse(match.Groups["lhs"].Value);
                 var rhs = Int32.Parse(match.Groups["rhs"].Value);
                 sum += lhs * rhs;
             }
         }
-        return sum;
+        return (sum, doing);
     }
 }
