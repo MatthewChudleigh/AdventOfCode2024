@@ -1,10 +1,14 @@
 ﻿using System.Text.RegularExpressions;
 
 /*
-- multiply numbers
 - mul(X,Y)
   - X and Y are each 1-3 digit numbers
   - e.g., mul(44,46) -> 2024
+- do()
+  - enables future mul
+- don't()
+  - disables future mul
+- mul enabled by default
 
 - invalid characters to be ignored
     - Sequences like mul(4*, mul(6,9!, ?(12,34), or mul ( 2 , 4 ) do nothing.
@@ -23,9 +27,10 @@ var dataPath = "/workspaces/AdventOfCode2024/data/A03/A03.1.txt";
 var sumTotal = 0;
 var sequences = File.ReadAllLines(dataPath);
 
+var doing = new A03.Doing();
 foreach (var sequence in sequences)
 {
-    var sum = A03.Evaluate(sequence);
+    var sum = A03.Evaluate(doing, sequence);
     sumTotal += sum;
 }
 
@@ -33,17 +38,33 @@ Console.WriteLine(sumTotal);
 
 static partial class A03
 {
-    [GeneratedRegex(@"mul\((?<lhs>\d{1,3}),(?<rhs>\d{1,3})\)", RegexOptions.Compiled)]
+    [GeneratedRegex(@"(?<do>do\(\))|(?<dont>don't\(\))|mul\((?<lhs>\d{1,3}),(?<rhs>\d{1,3})\)", RegexOptions.Compiled)]
     private static partial Regex ReMul();
 
-    public static int Evaluate(string sequence)
+    public class Doing
+    {
+        public bool IsDoing { get; set; } = true;
+    }
+
+    public static int Evaluate(Doing doing, string sequence)
     {
         var sum = 0;
         foreach (Match match in ReMul().Matches(sequence))
         {
-            var lhs = Int32.Parse(match.Groups["lhs"].Value);
-            var rhs = Int32.Parse(match.Groups["rhs"].Value);
-            sum += (lhs * rhs);
+            if (match.Groups["do"].Success)
+            {
+                doing.IsDoing = true;
+            }
+            else if (match.Groups["dont"].Success)
+            {
+                doing.IsDoing = false;
+            }
+            else if (doing.IsDoing)
+            {
+                var lhs = Int32.Parse(match.Groups["lhs"].Value);
+                var rhs = Int32.Parse(match.Groups["rhs"].Value);
+                sum += lhs * rhs;
+            }
         }
         return sum;
     }
