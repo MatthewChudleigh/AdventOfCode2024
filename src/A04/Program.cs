@@ -39,20 +39,27 @@ static class A04
         var points = new List<HashSet<(int X, int Y)>>() { xmas.X, xmas.M, xmas.A, xmas.S };
         foreach (var p in xmas.X)
         {
-            if (check(points, p.X, p.Y, 1, 0)) count++;
-            if (check(points, p.X, p.Y, 1, 1)) count++;
-            if (check(points, p.X, p.Y, 0, 1)) count++;
-            if (check(points, p.X, p.Y, -1, 1)) count++;
-            if (check(points, p.X, p.Y, -1, 0)) count++;
-            if (check(points, p.X, p.Y, -1, -1)) count++;
-            if (check(points, p.X, p.Y, 0, -1)) count++;
-            if (check(points, p.X, p.Y, 1, -1)) count++;
+            count += countXmas(points, p);
         }
 
         return count;
     }
 
-    private static bool check(List<HashSet<(int X, int Y)>> points, int x, int y, int offX, int offY)
+    private static int countXmas(List<HashSet<(int X, int Y)>> points, (int X, int Y) p)
+    {
+        var count = 0;
+        if (checkXmas(points, p.X, p.Y, 1, 0)) count++;
+        if (checkXmas(points, p.X, p.Y, 1, 1)) count++;
+        if (checkXmas(points, p.X, p.Y, 0, 1)) count++;
+        if (checkXmas(points, p.X, p.Y, -1, 1)) count++;
+        if (checkXmas(points, p.X, p.Y, -1, 0)) count++;
+        if (checkXmas(points, p.X, p.Y, -1, -1)) count++;
+        if (checkXmas(points, p.X, p.Y, 0, -1)) count++;
+        if (checkXmas(points, p.X, p.Y, 1, -1)) count++;
+        return count;
+    }
+
+    private static bool checkXmas(List<HashSet<(int X, int Y)>> points, int x, int y, int offX, int offY)
     {
         foreach (var p in points)
         {
