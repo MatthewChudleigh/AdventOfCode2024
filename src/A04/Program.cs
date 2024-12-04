@@ -37,9 +37,45 @@ static class A04
     {
         var count = 0;
         var points = new List<HashSet<(int X, int Y)>>() { xmas.X, xmas.M, xmas.A, xmas.S };
-        foreach (var p in xmas.X)
+        foreach (var p in xmas.A)
         {
-            count += countXmas(points, p);
+            count += countX(xmas, p);
+        }
+
+        return count;
+    }
+
+    private static int countX(Xmas xmas, (int X, int Y) p)
+    {
+        /*
+        | M S | M M | S M | S S |
+        |  A  |  A  |  A  |  A  |
+        | M S | S S | S M | M M |
+        */
+
+        var count = 0;
+        if (xmas.M.Contains((p.X - 1, p.Y - 1)) && xmas.S.Contains((p.X + 1, p.Y + 1))
+        && xmas.M.Contains((p.X - 1, p.Y + 1)) && xmas.S.Contains((p.X + 1, p.Y - 1)))
+        {
+            count++;
+        }
+
+        if (xmas.M.Contains((p.X - 1, p.Y - 1)) && xmas.S.Contains((p.X + 1, p.Y + 1))
+        && xmas.M.Contains((p.X + 1, p.Y - 1)) && xmas.S.Contains((p.X - 1, p.Y + 1)))
+        {
+            count++;
+        }
+
+        if (xmas.M.Contains((p.X + 1, p.Y - 1)) && xmas.S.Contains((p.X - 1, p.Y + 1))
+        && xmas.M.Contains((p.X + 1, p.Y + 1)) && xmas.S.Contains((p.X - 1, p.Y - 1)))
+        {
+            count++;
+        }
+
+        if (xmas.M.Contains((p.X - 1, p.Y + 1)) && xmas.S.Contains((p.X + 1, p.Y - 1))
+        && xmas.M.Contains((p.X + 1, p.Y + 1)) && xmas.S.Contains((p.X - 1, p.Y - 1)))
+        {
+            count++;
         }
 
         return count;
