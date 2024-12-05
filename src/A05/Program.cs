@@ -57,8 +57,15 @@ static class A05
                 }
             }
 
-            if (isOrderedOk)
+            if (!isOrderedOk)
             {
+                pages.Sort((lhs, rhs) =>
+                {
+                    return (orderings.ContainsKey(lhs) && orderings[lhs].Contains(rhs)) ? -1 :
+                        (orderings.ContainsKey(rhs) && orderings[rhs].Contains(lhs)) ? 1 :
+                        -1;
+                });
+
                 sumTotal += pages[pages.Count / 2];
             }
         }
