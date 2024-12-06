@@ -1,25 +1,28 @@
 ﻿var dataPath = "/workspaces/AdventOfCode2024/data/A06/A06.1.txt";
 
-var visitCount = A06.VisitCount(dataPath);
-Console.WriteLine(visitCount);
+var result = A06.VisitCount(dataPath);
+Console.WriteLine(result);
 
 static class A06
 {
+    public class Path : Dictionary<(int X, int Y), HashSet<int>> {}
+
     public class Map
     {
-        public HashSet<(int X, int Y)> GuardPath { get; set; } = new HashSet<(int X, int Y)>();
         public HashSet<(int X, int Y)> Obstacles { get; set; } = new HashSet<(int X, int Y)>();
         public int Width { get; set; }
         public int Height { get; set; }
     }
 
-    public static int VisitCount(string dataPath)
+    public static (int Visits, int PotentialObstructions) VisitCount(string dataPath)
     {
         var map = new Map();
 
-        (int X, int Y) pos = (0, 0);
-
+        var dir = 0;
         var y = 0;
+
+        (int X, int Y) startingPos = (0, 0);
+
         foreach (var line in File.ReadAllLines(dataPath))
         {
             var x = 0;
@@ -31,8 +34,7 @@ static class A06
                         map.Obstacles.Add((x, y));
                         break;
                     case '^':
-                        map.GuardPath.Add((x, y));
-                        pos = (x, y);
+                        startingPos = (x, y);
                         break;
                 }
                 x++;
@@ -42,31 +44,64 @@ static class A06
         }
         map.Height = y;
 
-        var dir = 0;
-        var directions = new List<(int X, int Y)>{
-            (0, -1), (1, 0), (0, 1), (-1, 0)
-        };
+        var (_, guardPath) = MapPath(map, dir, startingPos);
 
-        var stepsTotal = 0;
-        while (pos.X >= 0 && pos.X < map.Width && pos.Y >= 0 && pos.Y < map.Height)
+        var potentialObstructions = 0;
+
+        foreach (var extraObstacle in guardPath.Keys)
         {
-            var d = directions[dir % 4];
-            var nextPos = (pos.X + d.X, pos.Y + d.Y);
-            if (map.Obstacles.Contains(nextPos))
+            if (extraObstacle == startingPos) continue;
+            var (looped, _) = MapPath(map, dir, startingPos, extraObstacle);
+
+            if (looped)
             {
-                dir++;
-            }
-            else
-            {
-                stepsTotal++;
-                map.GuardPath.Add(pos);
-                pos = nextPos;
+                potentialObstructions++;
             }
         }
 
-        Console.WriteLine(pos);
-        Console.WriteLine(stepsTotal);
+        return (guardPath.Count(), potentialObstructions);
+    }
 
-        return map.GuardPath.Count();
+    private static List<(int X, int Y)> Directions = new List<(int X, int Y)>{
+        (0, -1), (1, 0), (0, 1), (-1, 0)
+    };
+    private static (bool Looped, Path Path) MapPath(Map map, int dir, (int X, int Y) pos, (int X, int Y)? extraObstacle = null)
+    {
+        var path = new Path();
+        path.AddToSet(pos, dir);
+
+        var steps = 0;
+        while (pos.X >= 0 && pos.X < map.Width && pos.Y >= 0 && pos.Y < map.Height)
+        {
+            var d = Directions[dir];
+            var nextPos = (pos.X + d.X, pos.Y + d.Y);
+            if (path.TryGetValue(nextPos, out var dirs) && dirs.Contains(dir))
+            {   // Looped
+                return (true, path);
+            }
+            else if (map.Obstacles.Contains(nextPos) || extraObstacle == nextPos)
+            {   // Hit wall
+                dir = (dir + 1) % 4;
+            }
+            else
+            {   // Record guard path
+                path.AddToSet(pos, dir);
+                pos = nextPos;
+            }
+            steps++;
+        }
+
+        return (false, path);
+    }
+
+    public static void AddToSet<K, V>(this Dictionary<K, HashSet<V>> dictionary, K key, V value)
+    where K : notnull
+    {
+        if (!dictionary.TryGetValue(key, out var set))
+        {
+            set = new HashSet<V>();
+            dictionary[key] = set;
+        }
+        set.Add(value);
     }
 }
