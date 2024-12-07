@@ -6,7 +6,7 @@
 - numbers cannot be rearranged
 */
 
-var dataPath = "/workspaces/AdventOfCode2024/data/A07/A07.1.txt";
+var dataPath = "/workspaces/AdventOfCode2024/data/A07/A07.test.txt";
 
 var total = A07.Calculate(dataPath);
 Console.WriteLine(total);
@@ -31,23 +31,46 @@ static class A07 {
 
         long result = 0;
         foreach (var equation in equations) {
-            var terms = (0b1 << (equation.Terms.Count - 1)) - 1;
-            while (terms >= 0) {
-                
-                var total = equation.Terms[0];
-                for (var i = 0; i < equation.Terms.Count - 1; ++i) {
-                    var op = (0b1 & (terms >> i)) == 0b1;
-                    var rhs = equation.Terms[i + 1];
 
-                    total = (op ? (total * rhs) : (total + rhs));
+            var concatCheck = (0b1 << (equation.Terms.Count - 1));
+
+            var concat = 0;
+            while (concat < concatCheck) {
+                var terms = new List<long>();
+
+                var term = equation.Terms[0];
+                for (var i = 1; i < equation.Terms.Count; ++i) {
+                    if ((0b1 & (concat >> (i-1))) == 0b1) {
+                        term = Int64.Parse($"{term}{equation.Terms[i]}");
+                    } else {
+                        terms.Add(term);
+                        term = equation.Terms[i];
+                    }
+                }
+                terms.Add(term);
+
+                var termIter = 0;
+                var termsCheck = (0b1 << (terms.Count - 1));
+                while (termIter < termsCheck) {
+                    
+                    var total = terms[0];
+                    for (var i = 0; i < terms.Count - 1; ++i) {
+                        var op = (0b1 & (termIter >> i)) == 0b1;
+                        var rhs = terms[i + 1];
+
+                        total = (op ? (total * rhs) : (total + rhs));
+                    }
+
+                    if (total == equation.TestValue) {
+                        result += equation.TestValue;
+                        concatCheck = concat;
+                        break;
+                    }
+                    
+                    termIter++;
                 }
 
-                if (total == equation.TestValue) {
-                    result += equation.TestValue;
-                    break;
-                }
-                
-                terms--;
+                concat++;
             }
         }
 
