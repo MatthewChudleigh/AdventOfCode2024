@@ -6,7 +6,7 @@
 - numbers cannot be rearranged
 */
 
-var dataPath = "/workspaces/AdventOfCode2024/data/A07/A07.test.txt";
+var dataPath = "/workspaces/AdventOfCode2024/data/A07/A07.1.txt";
 
 var total = A07.Calculate(dataPath);
 Console.WriteLine(total);
@@ -17,7 +17,7 @@ static class A07 {
         public required List<long> Terms {get;set;}
     }
     
-    public static long Calculate(string dataPath) {
+    public static long Calculate(string dataPath, int opCount = 3) {
         var equations = new List<Equation>();
 
         foreach (var line in File.ReadAllLines(dataPath)) {
@@ -32,45 +32,30 @@ static class A07 {
         long result = 0;
         foreach (var equation in equations) {
 
-            var concatCheck = (0b1 << (equation.Terms.Count - 1));
-
-            var concat = 0;
-            while (concat < concatCheck) {
-                var terms = new List<long>();
-
-                var term = equation.Terms[0];
-                for (var i = 1; i < equation.Terms.Count; ++i) {
-                    if ((0b1 & (concat >> (i-1))) == 0b1) {
-                        term = Int64.Parse($"{term}{equation.Terms[i]}");
-                    } else {
-                        terms.Add(term);
-                        term = equation.Terms[i];
-                    }
+            var termIter = 0;
+            var termsCheck = Math.Pow(opCount, equation.Terms.Count);
+            var operators = Enumerable.Repeat(0, equation.Terms.Count - 1).ToList();
+            while (termIter < termsCheck) {
+                
+                var total = equation.Terms[0];
+                for (var i = 0; i < equation.Terms.Count - 1; ++i) {
+                    var rhs = equation.Terms[i + 1];
+                    total = (operators[i]%opCount) switch { 0 => (total * rhs), 1 => (total + rhs), 2 => Int64.Parse($"{total}{rhs}"), _ => 0 };
                 }
-                terms.Add(term);
 
-                var termIter = 0;
-                var termsCheck = (0b1 << (terms.Count - 1));
-                while (termIter < termsCheck) {
-                    
-                    var total = terms[0];
-                    for (var i = 0; i < terms.Count - 1; ++i) {
-                        var op = (0b1 & (termIter >> i)) == 0b1;
-                        var rhs = terms[i + 1];
-
-                        total = (op ? (total * rhs) : (total + rhs));
-                    }
-
-                    if (total == equation.TestValue) {
-                        result += equation.TestValue;
-                        concatCheck = concat;
+                if (total == equation.TestValue) {
+                    result += equation.TestValue;
+                    break;
+                }
+                
+                for (var i = 0; i < operators.Count; ++i) {
+                    operators[i]++;
+                    if (operators[i]%opCount != 0) {
                         break;
                     }
-                    
-                    termIter++;
                 }
 
-                concat++;
+                termIter++;
             }
         }
 
