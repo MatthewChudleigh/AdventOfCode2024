@@ -1,4 +1,6 @@
-﻿var dataPath = "/workspaces/AdventOfCode2024/data/A06/A06.1.txt";
+﻿using Common;
+
+var dataPath = "/workspaces/AdventOfCode2024/data/A06/A06.1.txt";
 
 var result = A06.VisitCount(dataPath);
 Console.WriteLine(result);
@@ -92,16 +94,5 @@ static class A06
         }
 
         return (false, path);
-    }
-
-    public static void AddToSet<K, V>(this Dictionary<K, HashSet<V>> dictionary, K key, V value)
-    where K : notnull
-    {
-        if (!dictionary.TryGetValue(key, out var set))
-        {
-            set = new HashSet<V>();
-            dictionary[key] = set;
-        }
-        set.Add(value);
     }
 }
