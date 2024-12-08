@@ -15,7 +15,7 @@ public class Test
             }
         };
 
-        var result = A08.Solution.UniqueAntinodes(map);
+        var result = A08.Solution.UniqueAntinodes(map, false);
         Assert.Equal(2, result.Count);
         Assert.Contains((4,3), result);
         Assert.Contains((4,6), result);
@@ -34,7 +34,7 @@ public class Test
             }
         };
 
-        var result = A08.Solution.UniqueAntinodes(map);
+        var result = A08.Solution.UniqueAntinodes(map, false);
         Assert.Equal(2, result.Count);
         Assert.Contains((3,3), result);
         Assert.Contains((6,6), result);
@@ -53,7 +53,7 @@ public class Test
             }
         };
 
-        var result = A08.Solution.UniqueAntinodes(map);
+        var result = A08.Solution.UniqueAntinodes(map, false);
         Assert.Equal(2, result.Count);
         Assert.Contains((3,2), result);
         Assert.Contains((6,8), result);
@@ -72,7 +72,7 @@ public class Test
             }
         };
 
-        var result = A08.Solution.UniqueAntinodes(map);
+        var result = A08.Solution.UniqueAntinodes(map, false);
         Assert.Single(result);
         Assert.Contains((0,2), result);
     }

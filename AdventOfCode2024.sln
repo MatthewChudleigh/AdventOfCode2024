@@ -24,6 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "A08", "A08", "{8DF30024-8E5
 		data\A08\A08.test-2.txt = data\A08\A08.test-2.txt
 		data\A08\A08.test-3.txt = data\A08\A08.test-3.txt
 		data\A08\A08.1.txt = data\A08\A08.1.txt
+		data\A08\A08.test-4.txt = data\A08\A08.test-4.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A06", "src\A06\A06.csproj", "{CECC6A39-D05F-46CF-84F3-A5BE64A18415}"
