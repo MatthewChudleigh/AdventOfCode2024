@@ -13,8 +13,8 @@
   #    A    A    #
  */
 
-var map = A08.Solution.ReadMap(@".\data\A08\A08.1.txt");
+var map = A08.Solution.ReadMap(@"D:\Source\AdventOfCode2024\data\A08\A08.1.txt");
 Console.WriteLine($"{map.Width}x{map.Height}y");
-var antiNodes = A08.Solution.UniqueAntinodes(map, true);
+var antiNodes = map.UniqueAntinodes(true);
 Console.WriteLine(String.Join(Environment.NewLine, antiNodes));
 Console.WriteLine(antiNodes.Count);

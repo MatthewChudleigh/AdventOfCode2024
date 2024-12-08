@@ -10,6 +10,88 @@ public static class Solution
         public int Height { get; set; }
         
         public readonly Dictionary<char, List<(int X, int Y)>> Antennas = new();
+        
+
+        public HashSet<(int X, int Y)> UniqueAntinodes(bool findAll)
+        {
+            var antinodes = new HashSet<(int X, int Y)>();
+            foreach (var antinode in Antennas.SelectMany(a => FindAntinodesForAntennas(findAll, a.Value)))
+            {
+               antinodes.Add(antinode);
+            }
+            return antinodes;
+        }
+
+        private IEnumerable<(int X, int Y)> FindAntinodesForAntennas(bool findAll, List<(int X, int Y)> antenna)
+        {
+            for (var a = 0; a < antenna.Count; a++)
+            {
+                if (findAll && antenna.Count > 1)
+                {
+                    yield return antenna[a];
+                }
+                for (var b = a + 1; b < antenna.Count; b++)
+                {
+                    var axy = antenna[a];
+                    var bxy = antenna[b];
+
+                    foreach (var antinode in FindAntinodesForAntenna(findAll, axy, bxy))
+                    {
+                        yield return antinode;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<(int X, int Y)> FindAntinodesForAntenna(bool findAll, (int X, int Y) axy, (int X, int Y) bxy)
+        {
+            var xD = bxy.X - axy.X;
+            var yD = bxy.Y - axy.Y;
+
+            foreach (var antinode in FindAntinodes(axy, xD * -1, yD * -1))
+            {
+                yield return antinode;
+                if (!findAll) break;
+            }
+                        
+            foreach (var antinode in FindAntinodes(bxy, xD, yD))
+            {
+                yield return antinode;
+                if (!findAll) break;
+            }
+        }
+
+        public IEnumerable<(int X, int Y)> FindAntinodes((int X, int Y) xy, int dx, int dy)
+        {
+            while (true)
+            {
+                var hasAntinode = xy.X + dx >= 0 && xy.X + dx < Width && xy.Y + dy >= 0 && xy.Y + dy < Height;
+                if (!hasAntinode) yield break;
+                
+                xy.X += dx;
+                xy.Y += dy;
+                yield return (xy.X, xy.Y);
+            }
+        }
+        
+        public void PrintAntiNodes(HashSet<(int X, int Y)> antinodes)
+        {
+            for (var j = 0; j < Height; j++)
+            {
+                for (var i = 0; i < Width; i++)
+                {
+                    if (antinodes.Contains((i, j)))
+                    {
+                        Console.Write('#');
+                    }
+                    else
+                    {
+                        Console.Write('.');
+                    }
+                }
+                Console.WriteLine();
+            }
+        }
     }
 
     public static Map ReadMap(string dataPath)
@@ -37,82 +119,4 @@ public static class Solution
         return map;
     }
 
-    public static void PrintAntiNodes(Map map, HashSet<(int X, int Y)> antinodes)
-    {
-        for (var j = 0; j < map.Height; j++)
-        {
-            for (var i = 0; i < map.Width; i++)
-            {
-                if (antinodes.Contains((i, j)))
-                {
-                    Console.Write('#');
-                }
-                else
-                {
-                    Console.Write('.');
-                }
-            }
-            Console.WriteLine();
-        }
-    }
-
-    public static HashSet<(int X, int Y)> UniqueAntinodes(Map map, bool findAll)
-    {
-        var antinodes = new HashSet<(int X, int Y)>();
-        foreach (var antenna in map.Antennas)
-        {
-            for (var a = 0; a < antenna.Value.Count; a++)
-            {
-                if (findAll && antenna.Value.Count > 1)
-                {
-                    antinodes.Add(antenna.Value[a]);
-                }
-                for (var b = a + 1; b < antenna.Value.Count; b++)
-                {
-                    var aX = antenna.Value[a].X;
-                    var aY = antenna.Value[a].Y;
-                    var bX = antenna.Value[b].X;
-                    var bY = antenna.Value[b].Y;
-                    
-                    var xD = bX - aX;
-                    var yD = bY - aY;
-
-                    var hasAntinode = true;
-                    while (hasAntinode)
-                    {
-                        hasAntinode = aX - xD >= 0 && aX - xD < map.Width && aY - yD >= 0 && aY - yD < map.Height;
-                        if (hasAntinode)
-                        {
-                            antinodes.Add((aX - xD, aY - yD));
-                            aX -= xD;
-                            aY -= yD;
-                        }
-                        
-                        if (!findAll)
-                        {
-                            break;
-                        }
-                    }
-
-                    hasAntinode = true;
-                    while (hasAntinode)
-                    {
-                        hasAntinode = bX + xD >= 0 && bX + xD < map.Width && bY + yD >= 0 && bY + yD < map.Height;
-                        if (hasAntinode)
-                        {
-                            antinodes.Add((bX + xD, bY + yD));
-                            bX += xD;
-                            bY += yD;
-                        }
-                        
-                        if (!findAll)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return antinodes;
-    }
 }
