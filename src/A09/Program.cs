@@ -42,7 +42,14 @@ Each file on disk also has an ID number based on the order of the files as they 
 
 using A09;
 
-//var checksum = Solution.Checksum(@"D:\Source\AdventOfCode2024\data\A09\A09.test-0.txt");
+//var checksum = Solution.Checksum(@"D:\Source\AdventOfCode2024data/A09\A09.test-0.txt");
 //Console.WriteLine(checksum);
-var checksum = Solution.Checksum(@"data\A09.data.txt");
+var checksum = Solution.Checksum(@"data/A09.test-0.txt", false);
+Console.WriteLine(checksum);
+checksum = Solution.Checksum(@"data/A09.data.txt", false);
+Console.WriteLine(checksum);
+
+checksum = Solution.Checksum(@"data/A09.test-0.txt", true);
+Console.WriteLine(checksum);
+checksum = Solution.Checksum(@"data/A09.data.txt", true);
 Console.WriteLine(checksum);

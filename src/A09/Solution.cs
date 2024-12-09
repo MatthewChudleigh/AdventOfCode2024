@@ -2,7 +2,7 @@
 
 public static class Solution
 {
-    public static long Checksum(string dataPath)
+    public static long Checksum(string dataPath, bool fullFile)
     {
         long checksum = 0;
         
@@ -35,34 +35,29 @@ public static class Solution
             while (fileValue.Length > 0)
             {
                 var free = freeChunks
-                    .Where(kv => kv.Key < file.Key && kv.Value >= file.Value.Length)
+                    .Where(kv => kv.Key < file.Key && kv.Value >= (fullFile ? file.Value.Length : 1))
                     .OrderBy(kv => kv.Key)
                     .FirstOrDefault();
 
-                if (free.Value > 0)
+                if (free.Value == 0) break;
+                
+                freeChunks.Remove(free.Key);
+                if (free.Value > fileValue.Length)
                 {
-                    freeChunks.Remove(free.Key);
-                    if (free.Value > fileValue.Length)
-                    {
-                        freeChunks[free.Key + fileValue.Length] = free.Value - fileValue.Length;
-                    }
-
-                    if (free.Value >= fileValue.Length)
-                    {
-                        files.Remove(file.Key);
-                        files[free.Key] = fileValue;
-                        fileValue.Length = 0;
-                    }
-                    else
-                    {
-                        fileValue = (fileValue.Id, fileValue.Length - free.Value);
-                        files[file.Key] = fileValue;
-                        files[free.Key] = (fileValue.Id, free.Value);
-                    }
+                    freeChunks[free.Key + fileValue.Length] = free.Value - fileValue.Length;
+                }
+                
+                if (free.Value < fileValue.Length)
+                {
+                    fileValue = (fileValue.Id, fileValue.Length - free.Value);
+                    files[file.Key] = fileValue;
+                    files[free.Key] = (fileValue.Id, free.Value);
                 }
                 else
                 {
-                    fileValue.Length = 0;
+                    files.Remove(file.Key);
+                    files[free.Key] = fileValue;
+                    break;
                 }
             }
         }
