@@ -35,7 +35,7 @@ public static class Solution
             while (fileValue.Length > 0)
             {
                 var free = freeChunks
-                    .Where(kv => kv.Key < file.Key && kv.Value >= 1)
+                    .Where(kv => kv.Key < file.Key && kv.Value >= file.Value.Length)
                     .OrderBy(kv => kv.Key)
                     .FirstOrDefault();
 
