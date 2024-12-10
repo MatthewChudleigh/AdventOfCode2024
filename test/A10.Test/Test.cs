@@ -12,15 +12,15 @@ public class Test
             TrailHeads = [(0, 0)],
             Points = new Dictionary<(int X, int Y), Solution.MapPoint>()
             {
-                { (0, 0), new Solution.MapPoint(0) },
-                { (0, 1), new Solution.MapPoint(1) },
-                { (1, 0), new Solution.MapPoint(1) },
-                { (1, 1), new Solution.MapPoint(2) }
+                { (0, 0), new Solution.MapPoint((0,0),0) },
+                { (0, 1), new Solution.MapPoint((0,1), 1) },
+                { (1, 0), new Solution.MapPoint((1,0), 1) },
+                { (1, 1), new Solution.MapPoint((1,1), 2) }
             },
             NewIdOnFork = fork
         };
         
-        map.Targets.Push(new Solution.Target(1)
+        map.Steps.Push(new Solution.Step(1)
         { 
             Point = (1, 1),
             Height = 2

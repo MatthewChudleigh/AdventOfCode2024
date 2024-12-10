@@ -2,24 +2,25 @@
 
 public static class Solution
 {
-    public class Target(int id)
+    public class Step(int id)
     {
         public int Id => id;
         public int Height { get; init; }
         public (int X, int Y) Point { get; init; }
     }
 
-    public class MapPoint(int height)
+    public class MapPoint((int X, int Y) point, int height)
     {
+        public (int X, int Y) Point => point;
         public int Height => height;
-        public HashSet<int> Targets { get; } = [];
+        public HashSet<int> Steps { get; } = [];
     }
     
     public class Map
     {
-        private int _nextTargetId;
+        private int _nextPathId;
         public bool NewIdOnFork { get; init; }
-        public Stack<Target> Targets { get; } = new();
+        public Stack<Step> Steps { get; } = new();
         public HashSet<(int X, int Y)> TrailHeads { get; init; } = [];
         public Dictionary<(int X, int Y), MapPoint> Points { get; init; } = new();
 
@@ -38,7 +39,7 @@ public static class Solution
                 var point = (x, y);
                 var height = c - 48;
 
-                var mapPoint = new MapPoint(height);
+                var mapPoint = new MapPoint(point, height);
                 map.Points[point] = mapPoint;
                 
                 if (height == start)
@@ -47,9 +48,9 @@ public static class Solution
                 }
                 else if (height == target)
                 {
-                    ++map._nextTargetId;
-                    mapPoint.Targets.Add(map._nextTargetId);
-                    map.Targets.Push(new Target(map._nextTargetId)
+                    ++map._nextPathId;
+                    mapPoint.Steps.Add(map._nextPathId);
+                    map.Steps.Push(new Step(map._nextPathId)
                     {
                         Height = height,
                         Point = point
@@ -62,37 +63,31 @@ public static class Solution
 
         public int Score()
         {
-            while (Targets.Count > 0)
+            while (Steps.Count > 0)
             {
-                var target = Targets.Pop();
-                foreach (var t in Process(target))
+                foreach (var t in NextSteps(Steps.Pop()))
                 {
-                    Targets.Push(t);
+                    Steps.Push(t);
                 }
             }
 
-            return TrailHeads.Sum(start => Points[start].Targets.Count);
+            return TrailHeads.Sum(start => Points[start].Steps.Count);
         }
+
+        private static readonly List<(int X, int Y)> CardinalPoints = [(1, 0), (0, 1), (-1, 0), (0, -1)];
         
-        private IEnumerable<Target> Process(Target target)
+        private IEnumerable<Step> NextSteps(Step step)
         {
-            var (x, y) = target.Point;
-
-            var dirs = (new List<(int X, int Y)>()
-                    { (x + 1, y + 0), (x + 0, y + 1), (x - 1, y - 0), (x - 0, y - 1) })
-                .Where(xy => Points.ContainsKey(xy) && Points[xy].Height == target.Height - 1);
-
-            foreach (var dir in dirs)
-            {
-                var point = Points[dir];
-                if (!point.Targets.Add(target.Id)) continue;
-                
-                yield return new Target(NewIdOnFork ? ++_nextTargetId : target.Id)
+            return CardinalPoints
+                .Select(p => (step.Point.X + p.X, step.Point.Y + p.Y))
+                .Where(xy => Points.ContainsKey(xy) && Points[xy].Height == step.Height - 1)
+                .Select(xy => Points[xy])
+                .Where(point => point.Steps.Add(step.Id))
+                .Select(point => new Step(NewIdOnFork ? ++_nextPathId : step.Id)
                 {
-                    Point = dir,
+                    Point = point.Point,
                     Height = point.Height,
-                };
-            }
+                });
         }
     }
     
