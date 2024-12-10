@@ -2,8 +2,10 @@
 
 public class Test
 {
-    [Fact]
-    public void Test1()
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public void Test1(bool fork, int expectedScore)
     {
         var map = new Solution.Map()
         {
@@ -27,7 +29,7 @@ public class Test
             }
         };
 
-        var score = Solution.Score(map);
-        Assert.Equal(1, score);
+        var score = Solution.Score(map, fork);
+        Assert.Equal(expectedScore, score);
     }
 }

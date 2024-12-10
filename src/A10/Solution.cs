@@ -19,6 +19,7 @@ public static class Solution
     
     public class Map
     {
+        public int NextTargetId { get; set; }
         public Dictionary<int, Target> Targets { get; set; } = new();
         public HashSet<(int X, int Y)> TrailHeads { get; set; } = new();
         public Dictionary<(int X, int Y), MapPoint> Points { get; set; } = new();
@@ -27,7 +28,6 @@ public static class Solution
 
         public static Map Read(string dataPath, int start = 0, int target = 9)
         {
-            var nextTargetId = 0;
             var map = new Map();
 
             var y = 0;
@@ -43,9 +43,9 @@ public static class Solution
                         
                         if (height == target)
                         {
-                            nextTargetId++;
-                            map.Points[point] = new MapPoint(height) { Targets = [nextTargetId] };
-                            map.Targets[nextTargetId] = new Target(nextTargetId)
+                            ++map.NextTargetId;
+                            map.Points[point] = new MapPoint(height) { Targets = [map.NextTargetId] };
+                            map.Targets[map.NextTargetId] = new Target(map.NextTargetId)
                             {
                                 Height = height,
                                 Point = point
@@ -75,14 +75,14 @@ public static class Solution
         }
     }
     
-    public static int Score(string dataPath, int start = 0, int targetHeight = 9)
+    public static int Score(string dataPath, bool newIdOnFork, int start = 0, int targetHeight = 9)
     {
         var map = Map.Read(dataPath, start, targetHeight);
 
-        return Score(map);
+        return Score(map, newIdOnFork);
     }
 
-    public static int Score(Map map)
+    public static int Score(Map map, bool newIdOnFork)
     {
         var score = 0;
 
@@ -104,7 +104,7 @@ public static class Solution
                 var point = map.Points[dir];
                 if (point.Targets.Add(target.Id))
                 {
-                    targets.Push(new Target(target.Id)
+                    targets.Push(new Target(newIdOnFork ? ++map.NextTargetId : target.Id)
                     {
                         Point = dir,
                         Height = point.Height,
