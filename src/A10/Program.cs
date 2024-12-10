@@ -21,5 +21,5 @@ Topographic map
 
 using A10;
 
-var score = Solution.Score(@"\data\A10.data.txt", true);
+var score = Solution.Solve(@"\data\A10.data.txt", true);
 Console.WriteLine(score);

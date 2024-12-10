@@ -16,7 +16,8 @@ public class Test
                 { (0, 1), new Solution.MapPoint(1) },
                 { (1, 0), new Solution.MapPoint(1) },
                 { (1, 1), new Solution.MapPoint(2) }
-            }
+            },
+            NewIdOnFork = fork
         };
         
         map.Targets.Push(new Solution.Target(1)
@@ -25,7 +26,7 @@ public class Test
             Height = 2
         });
 
-        var score = Solution.Score(map, fork);
+        var score = map.Score();
         Assert.Equal(expectedScore, score);
     }
 }
