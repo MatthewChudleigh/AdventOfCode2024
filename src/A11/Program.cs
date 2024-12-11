@@ -6,5 +6,5 @@ Else: 2024*Else
 
 using A11;
 
-var stoneCount = Solution.Solve(@"data\A11.data.txt", 25);
+var stoneCount = Solution.Solve(@"data\A11.data.txt", 75);
 Console.WriteLine(stoneCount);
