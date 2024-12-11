@@ -50,21 +50,18 @@ public static class Solution
     {
         if (s.Value == 0)
         {
-            return new List<Stone>()
-            {
-                s with { Value = 1 }
-            };
+            yield return s with { Value = 1 };
+            yield break;
         }
             
         var str = $"{s.Value}";
-        if (str.Length % 2 != 0) return [s with { Value = s.Value * 2024 }];
-        
-        var lhs = str[..(str.Length / 2)];
-        var rhs = str[(str.Length / 2)..];
-        return
-        [
-            s with { Value = BigInteger.Parse(lhs) },
-            s with { Value = BigInteger.Parse(rhs) }
-        ];
+        if (str.Length % 2 != 0) {
+            yield return s with { Value = s.Value * 2024 };
+        } else {
+            var lhs = str[..(str.Length / 2)];
+            var rhs = str[(str.Length / 2)..];
+            yield return s with { Value = BigInteger.Parse(lhs) };
+            yield return s with { Value = BigInteger.Parse(rhs) };
+        }
     }
 }
