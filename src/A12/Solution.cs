@@ -83,7 +83,6 @@ public static class Solution
 
         foreach (var plot in garden.Plots)
         {
-            if (visited.Contains(plot.Value)) continue;
             var plots = new Stack<Plot>();
             plots.Push(plot.Value);
             regions.Add(VisitPlot(garden, visited, plots));
@@ -99,6 +98,7 @@ public static class Solution
         Bottom,
         Right
     };
+    
     private static Region VisitPlot(Garden garden, HashSet<Plot> visited, Stack<Plot> plots)
     {
         garden.RegionId++;
@@ -116,90 +116,63 @@ public static class Solution
             region.Area++;
             region.Plots.Add(p);
             
-            var (x, y) = p.Point;
-            var top = TryVisit(p, (x, y - 1));
-            var left = TryVisit(p, (x - 1, y));
-            var bottom = TryVisit(p, (x, y + 1));
-            var right = TryVisit(p, (x + 1, y));
-            
-            AddSides(p, region, top, left, bottom, right);
+            var top = TryVisit(p, Tlbr.Top, (0, -1));
+            var left = TryVisit(p, Tlbr.Left, (-1, 0));
+            var bottom = TryVisit(p, Tlbr.Bottom, (0, 1));
+            var right = TryVisit(p, Tlbr.Right,(1, 0));
         }
 
         return region;
 
-        bool TryVisit(Plot from, (int x, int y) point)
+        bool TryVisit(Plot from, Tlbr tlbr, (int x, int y) point)
         {
-            if (garden.Plots.TryGetValue(point, out var to) && from.Plant == to.Plant)
+            var (x, y) = (from.Point.X + point.x, from.Point.Y + point.y);
+            if (garden.Plots.TryGetValue((x, y), out var to) && from.Plant == to.Plant)
             {
                 plots.Push(to);
                 return true;
             } else {
                 region.Perimeter++;
+                var side = AddSide(from,  tlbr, (point.y, point.x));
+                region.Sides[(from.Point.X, from.Point.Y, tlbr)] = side;
                 return false;
             }
         }
-    }
-
-    private static void AddSides(
-        Plot p, Region region,
-        bool top, bool left, bool bottom, bool right)
-    {
-        var (x, y) = p.Point;
-
-        if (!top)
-        {
-            AddSide((1, 0), Tlbr.Top);
-        }
-
-        if (!left)
-        {
-            AddSide((0, 1), Tlbr.Left);
-        }
-
-        if (!bottom)
-        {
-            AddSide((1, 0), Tlbr.Bottom);
-        }
         
-        if (!right)
-        {
-            AddSide((0, 1), Tlbr.Right);
-        }
-
-        void AddSide((int X, int Y) to, Tlbr dir)
+        Side AddSide(Plot p, Tlbr dir, (int X, int Y) to)
         {
             region.Sides.TryGetValue((p.Point.X + to.X, p.Point.Y + to.Y, dir), out var lhs);
             region.Sides.TryGetValue((p.Point.X - to.X, p.Point.Y - to.Y, dir), out var rhs);
-            if (lhs == null && rhs == null)
+            
+            if (lhs != null && rhs != null)
             {
-                region.SideCount++;
-                var side = new Side()
+                foreach (var r in rhs.Plots)
                 {
-                    Id = region.SideCount
-                };
-                region.Sides[(p.Point.X, p.Point.Y, dir)] = side;
-                side.Plots.Add(p);
-            } 
-            else if (lhs != null)
-            {
-                if (rhs != null)
-                {
-                    foreach (var r in rhs.Plots)
-                    {
-                        lhs.Plots.Add(r);
-                        region.Sides[(r.Point.X, r.Point.Y, dir)] = lhs;
-                    }
+                    lhs.Plots.Add(r);
+                    region.Sides[(r.Point.X, r.Point.Y, dir)] = lhs;
                 }
 
-                lhs.Plots.Add(p);
-                region.Sides[(p.Point.X, p.Point.Y, dir)] = lhs;
+                rhs = null;
             }
-            else if (rhs != null)
+            
+            if (lhs != null)
+            {
+                lhs.Plots.Add(p);
+                return lhs;
+            }
+            
+            if (rhs != null)
             {
                 rhs.Plots.Add(p);
-                region.Sides[(p.Point.X, p.Point.Y, dir)] = rhs;
+                return rhs;
             }
 
+            var side = new Side()
+            {
+                Id = ++region.SideCount
+            };
+            side.Plots.Add(p);
+            return side;
         }
     }
 }
