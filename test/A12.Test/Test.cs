@@ -38,18 +38,38 @@ public class Test
                                        MIIISIJEEE
                                        MMMISSJEEE
                                        """;
+
+    private const string Egarden = """
+                                   EEEEE
+                                   EXXXX
+                                   EEEEE
+                                   EXXXX
+                                   EEEEE
+                                   """;
+
+    private const string AbbaGarden = """
+                                      AAAAAA
+                                      AAABBA
+                                      AAABBA
+                                      ABBAAA
+                                      ABBAAA
+                                      AAAAAA
+                                      """;
     
     [Theory]
-    [InlineData(SmallGarden, 5, 140)]
-    [InlineData(MedGarden, 5, 772)]
-    [InlineData(LargeGarden, 11, 1930)]
-    public void TestGardens(string data, int expectedRegions, int expectedCost)
+    [InlineData(SmallGarden, 5, 140, 80)]
+    [InlineData(Egarden, 3, 692, 236)]
+    [InlineData(AbbaGarden, 3, 1184, 368)]
+    [InlineData(MedGarden, 5, 772, 436)]
+    [InlineData(LargeGarden, 11, 1930, 1206)]
+    public void TestGardens(string data, int expectedRegions, int expectedCost, int expectedCostWithSides)
     {
         var garden = Solution.ToGarden(data);
         var regions = Solution.GetRegions(garden);
-        var cost = Solution.CalculateCost(regions);
+        var (solution, solutionWithSides) = Solution.CalculateCost(regions);
         Print(garden);
-        Assert.Equal(expectedCost, cost);
+        Assert.Equal(expectedCost, solution);
+        Assert.Equal(expectedCostWithSides, solutionWithSides);
         Assert.Equal(expectedRegions, regions.Count);
     }
 
