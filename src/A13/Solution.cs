@@ -6,58 +6,53 @@ public static class Solution
 {
     public class Machine
     {
-        public (int X, int Y) A { get; set; }
-        public (int X, int Y) B { get; set; }
-        public (int X, int Y) Prize { get; set; }
+        public (long X, long Y) A { get; set; }
+        public (long X, long Y) B { get; set; }
+        public (long X, long Y) Prize { get; set; }
     }
     
-    public static int Solve(IEnumerable<string> data)
+    public static long Solve(IEnumerable<string> data, long offset)
     {
-        var machines = GetMachines(data);
+        var machines = GetMachines(data, offset);
         
         return Solve(machines);
     }
 
-    public static int Solve(IEnumerable<Machine> machines)
+    public static long Solve(IEnumerable<Machine> machines)
     {
-        var solution = 0;
+        long solution = 0;
         foreach (var machine in machines)
         {
-            solution += Solve(machine);
+            var total = Solve(machine);
+            Console.WriteLine(total);
+            solution += total;
         }
-        
+        Console.WriteLine("...");
         return solution;
     }
 
-    public static int Solve(Machine machine)
+    public static long Solve(Machine machine)
     {
 /*
 Cx = ax * AN + bx * BN
 Cy = ay * AN + by * BN
-*/
-        var combinations  = new Dictionary<(int a, int b), int>();
-        for (var a = 0; a < 100; ++a)
-        {
-            for (var b = 0; b < 100; ++b)
-            {
-                combinations[(a, b)] = a * 3 + b;
-            }
-        }
+*/ 
+        var a = machine.A;
+        var b = machine.B;
+        var p = machine.Prize;
 
-        foreach (var kv in combinations.OrderBy(c => c.Value))
-        {
-            var (a, b) = kv.Key;
-            if (machine.A.X*a+machine.B.X*b == machine.Prize.X && 
-                 machine.A.Y*a+machine.B.Y*b == machine.Prize.Y)
-            {
-                return kv.Value;
-            }
-        }
+        var num = (p.X * b.Y - p.Y * b.X);
+        var den = (a.X * b.Y - b.X * a.Y);
 
-        return 0;
+        if (num % den != 0) return 0;
+        
+        var A = num / den;
+        var B = (p.Y - a.Y*A) / b.Y;
+        
+        return A*3+B;
     }
     
-    public static List<Machine> GetMachines(IEnumerable<string> data)
+    public static List<Machine> GetMachines(IEnumerable<string> data, long offset)
     {
         var machines = new List<Machine>();
         foreach (var lines in data.Chunk(3))
@@ -67,9 +62,9 @@ Cy = ay * AN + by * BN
             var pz = Re.RePrize().Match(lines[2]);
             var machine = new Machine()
             {
-                A = (int.Parse(bA.Groups["x"].Value), int.Parse(bA.Groups["y"].Value)), 
-                B = (int.Parse(bB.Groups["x"].Value), int.Parse(bB.Groups["y"].Value)),
-                Prize = (int.Parse(pz.Groups["x"].Value), int.Parse(pz.Groups["y"].Value)),
+                A = (long.Parse(bA.Groups["x"].Value), long.Parse(bA.Groups["y"].Value)), 
+                B = (long.Parse(bB.Groups["x"].Value), long.Parse(bB.Groups["y"].Value)),
+                Prize = (long.Parse(pz.Groups["x"].Value)+offset, long.Parse(pz.Groups["y"].Value)+offset),
             };
             machines.Add(machine);
         }
