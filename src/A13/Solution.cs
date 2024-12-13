@@ -13,29 +13,14 @@ public static class Solution
     
     public static long Solve(IEnumerable<string> data, long offset)
     {
-        var machines = GetMachines(data, offset);
-        
-        return Solve(machines);
-    }
-
-    public static long Solve(IEnumerable<Machine> machines)
-    {
-        long solution = 0;
-        foreach (var machine in machines)
-        {
-            var total = Solve(machine);
-            Console.WriteLine(total);
-            solution += total;
-        }
-        Console.WriteLine("...");
-        return solution;
+        return GetMachines(data, offset).Sum(Solve);
     }
 
     public static long Solve(Machine machine)
     {
 /*
 Cx = ax * AN + bx * BN
-Cy = ay * AN + by * BN
+Cy = ay * AN + by * BN 
 */ 
         var a = machine.A;
         var b = machine.B;
@@ -52,26 +37,23 @@ Cy = ay * AN + by * BN
         return A*3+B;
     }
     
-    public static List<Machine> GetMachines(IEnumerable<string> data, long offset)
+    public static IEnumerable<Machine> GetMachines(IEnumerable<string> data, long offset)
     {
-        var machines = new List<Machine>();
-        foreach (var lines in data.Chunk(3))
-        {
-            var bA = Re.ReButton().Match(lines[0]);
-            var bB = Re.ReButton().Match(lines[1]);
-            var pz = Re.RePrize().Match(lines[2]);
-            var machine = new Machine()
+        return
+            from lines in data.Chunk(3)
+            let bA = Re.ReButton().Match(lines[0])
+            let bB = Re.ReButton().Match(lines[1])
+            let pz = Re.RePrize().Match(lines[2])
+            select new Machine()
             {
                 A = (long.Parse(bA.Groups["x"].Value), long.Parse(bA.Groups["y"].Value)), 
-                B = (long.Parse(bB.Groups["x"].Value), long.Parse(bB.Groups["y"].Value)),
-                Prize = (long.Parse(pz.Groups["x"].Value)+offset, long.Parse(pz.Groups["y"].Value)+offset),
+                B = (long.Parse(bB.Groups["x"].Value), long.Parse(bB.Groups["y"].Value)), 
+                Prize = (long.Parse(pz.Groups["x"].Value) + offset, long.Parse(pz.Groups["y"].Value) + offset),
             };
-            machines.Add(machine);
-        }
-        return machines;
     }
 }
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public partial class Re
 {
     [GeneratedRegex(@"Button [AB]: X\+(?<x>\d+), Y\+(?<y>\d+)", RegexOptions.Compiled)]
