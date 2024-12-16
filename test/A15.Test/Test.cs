@@ -22,7 +22,7 @@ public class Test
                                     ########
                                     """;
 
-    private const string ExpectedSmallMap1 = """
+    private const string SmallMap1 = """
                                              ########
                                              #..O.O.#
                                              ##@.O..#
@@ -33,7 +33,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap2 = """
+    private const string SmallMap2 = """
                                              ########
                                              #.@O.O.#
                                              ##..O..#
@@ -44,7 +44,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap3 = """
+    private const string SmallMap3 = """
                                              ########
                                              #.@O.O.#
                                              ##..O..#
@@ -55,7 +55,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap4 = """
+    private const string SmallMap4 = """
                                              ########
                                              #..@OO.#
                                              ##..O..#
@@ -66,7 +66,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap5 = """
+    private const string SmallMap5 = """
                                              ########
                                              #...@OO#
                                              ##..O..#
@@ -77,7 +77,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap6 = """
+    private const string SmallMap6 = """
                                              ########
                                              #...@OO#
                                              ##..O..#
@@ -88,7 +88,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap7 = """
+    private const string SmallMap7 = """
                                              ########
                                              #....OO#
                                              ##..@..#
@@ -99,7 +99,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap8 = """
+    private const string SmallMap8 = """
                                              ########
                                              #....OO#
                                              ##..@..#
@@ -110,7 +110,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap9 = """
+    private const string SmallMap9 = """
                                              ########
                                              #....OO#
                                              ##.@...#
@@ -121,7 +121,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap10 = """
+    private const string SmallMap10 = """
                                              ########
                                              #....OO#
                                              ##.....#
@@ -132,7 +132,7 @@ public class Test
                                              ########
                                              """;
 
-    private const string ExpectedSmallMap11 = """
+    private const string SmallMap11 = """
                                               ########
                                               #....OO#
                                               ##.....#
@@ -143,7 +143,7 @@ public class Test
                                               ########
                                               """;
 
-    private const string ExpectedSmallMap12 = """
+    private const string SmallMap12 = """
                                               ########
                                               #....OO#
                                               ##.....#
@@ -154,7 +154,7 @@ public class Test
                                               ########
                                               """;
 
-    private const string ExpectedSmallMap13 = """
+    private const string SmallMap13 = """
                                               ########
                                               #....OO#
                                               ##.....#
@@ -165,7 +165,7 @@ public class Test
                                               ########
                                               """;
 
-    private const string ExpectedSmallMap14 = """
+    private const string SmallMap14 = """
                                               ########
                                               #....OO#
                                               ##.....#
@@ -176,7 +176,7 @@ public class Test
                                               ########
                                               """;
 
-    private const string ExpectedSmallMap15 = """
+    private const string SmallMap15 = """
                                               ########
                                               #....OO#
                                               ##.....#
@@ -225,32 +225,190 @@ public class Test
                                     ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
                                     v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
                                     """;
+
+    private const string ExpandMap = """
+                                     #######
+                                     #...#.#
+                                     #.....#
+                                     #..00@#
+                                     #..0..#
+                                     #.....#
+                                     #######
+                                     """;
+
+    private const string ExpandMap1 = """
+                                     ##############
+                                     ##......##..##
+                                     ##..........##
+                                     ##...[][]@..##
+                                     ##....[]....##
+                                     ##..........##
+                                     ##############
+                                     """;
+
+    private const string ExpandMap2 = """
+                                      ##############
+                                      ##......##..##
+                                      ##..........##
+                                      ##...[][]...##
+                                      ##....[].@..##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap3 = """
+                                      ##############
+                                      ##......##..##
+                                      ##..........##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##.......@..##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap4 = """
+                                      ##############
+                                      ##......##..##
+                                      ##..........##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##......@...##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap5 = """
+                                      ##############
+                                      ##......##..##
+                                      ##..........##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##.....@....##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap6 = """
+                                      ##############
+                                      ##......##..##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##.....@....##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap7 = """
+                                      ##############
+                                      ##......##..##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##.....@....##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap8 = """
+                                      ##############
+                                      ##......##..##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##....@.....##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap9 = """
+                                      ##############
+                                      ##......##..##
+                                      ##...[][]...##
+                                      ##....[]....##
+                                      ##...@......##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap10 = """
+                                      ##############
+                                      ##......##..##
+                                      ##...[][]...##
+                                      ##...@[]....##
+                                      ##..........##
+                                      ##..........##
+                                      ##############
+                                      """;
+
+    private const string ExpandMap11 = """
+                                       ##############
+                                       ##...[].##..##
+                                       ##...@.[]...##
+                                       ##....[]....##
+                                       ##..........##
+                                       ##..........##
+                                       ##############
+                                       """;
+
+    private const string ExpandSmallMap1 = """
+                                          .0@
+                                          """;
+
+    private const string ExpandSmallMap1_1 ="""
+                                            .[]@..
+                                            """;
     
+    private const string ExpandSmallMap2 = """
+                                           ...
+                                           .0@
+                                           00.
+                                           ...
+                                           """;
+
+    private const string ExpandSmallMap2_1 ="""
+                                            .[]...
+                                            ..[]..
+                                            []@...
+                                            ......
+                                            """;
     [Theory]
-    [InlineData(SmallMap, "<", ExpectedSmallMap1, null)]
-    [InlineData(ExpectedSmallMap1, "^", ExpectedSmallMap2, null)]
-    [InlineData(ExpectedSmallMap2, "^", ExpectedSmallMap3, null)]
-    [InlineData(ExpectedSmallMap3, ">", ExpectedSmallMap4, null)]
-    [InlineData(ExpectedSmallMap4, ">", ExpectedSmallMap5, null)]
-    [InlineData(ExpectedSmallMap5, ">", ExpectedSmallMap6, null)]
-    [InlineData(ExpectedSmallMap6, "v", ExpectedSmallMap7, null)]
-    [InlineData(ExpectedSmallMap7, "v", ExpectedSmallMap8, null)]
-    [InlineData(ExpectedSmallMap8, "<", ExpectedSmallMap9, null)]
-    [InlineData(ExpectedSmallMap9, "v", ExpectedSmallMap10, null)]
-    [InlineData(ExpectedSmallMap10, ">", ExpectedSmallMap11, null)]
-    [InlineData(ExpectedSmallMap11, ">", ExpectedSmallMap12, null)]
-    [InlineData(ExpectedSmallMap12, "v", ExpectedSmallMap13, null)]
-    [InlineData(ExpectedSmallMap13, "<", ExpectedSmallMap14, null)]
-    [InlineData(ExpectedSmallMap14, "<", ExpectedSmallMap15, 2028)]
-    [InlineData(MedMap, MedMoves, ExpectedMedMap, 10092)]
-    public void TestRobotMoves(string initMap, string moves, string expectedMap, int? expectedSum)
+    [InlineData(SmallMap, "<", SmallMap1, 1, null)]
+    [InlineData(SmallMap1, "^", SmallMap2, 1, null)]
+    [InlineData(SmallMap2, "^", SmallMap3, 1, null)]
+    [InlineData(SmallMap3, ">", SmallMap4, 1, null)]
+    [InlineData(SmallMap4, ">", SmallMap5, 1, null)]
+    [InlineData(SmallMap5, ">", SmallMap6, 1, null)]
+    [InlineData(SmallMap6, "v", SmallMap7, 1, null)]
+    [InlineData(SmallMap7, "v", SmallMap8, 1, null)]
+    [InlineData(SmallMap8, "<", SmallMap9, 1, null)]
+    [InlineData(SmallMap9, "v", SmallMap10, 1, null)]
+    [InlineData(SmallMap10, ">", SmallMap11, 1, null)]
+    [InlineData(SmallMap11, ">", SmallMap12, 1, null)]
+    [InlineData(SmallMap12, "v", SmallMap13, 1, null)]
+    [InlineData(SmallMap13, "<", SmallMap14, 1, null)]
+    [InlineData(SmallMap14, "<", SmallMap15, 1, 2028)]
+    [InlineData(MedMap, MedMoves, ExpectedMedMap, 1, 10092)]
+    [InlineData(ExpandMap, "<", ExpandMap1, 2, null)]
+    [InlineData(ExpandMap, "<v", ExpandMap2, 2, null)]
+    [InlineData(ExpandMap, "<vv", ExpandMap3, 2, null)]
+    [InlineData(ExpandMap, "<vv<", ExpandMap4, 2, null)]
+    [InlineData(ExpandMap, "<vv<<", ExpandMap5, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^", ExpandMap6, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^^", ExpandMap7, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^^<", ExpandMap8, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^^<<", ExpandMap9, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^^<<^", ExpandMap10, 2, null)]
+    [InlineData(ExpandMap, "<vv<<^^<<^^", ExpandMap11, 2, null)]
+    [InlineData(ExpandSmallMap1, "<", ExpandSmallMap1_1, 2, null)]
+    [InlineData(ExpandSmallMap2, "<>vv<<^", ExpandSmallMap2_1, 2, null)]
+    public void TestRobotMoves(string initMap, string moves, string expectedMap, int scale, int? expectedSum)
     {
-        var map = Solution.LinesToMap(initMap.Split('\n', StringSplitOptions.RemoveEmptyEntries)); 
+        var map = Solution.LinesToMap(initMap.Split('\n', StringSplitOptions.RemoveEmptyEntries), scale); 
         _testOutputHelper.WriteLine(map.Render());
-        map.Apply(moves);
-        var mapString = map.Render();
-        _testOutputHelper.WriteLine(mapString);
-        Assert.Equal(expectedMap.ReplaceLineEndings(""), mapString.ReplaceLineEndings(""));
+        foreach (var m in map.Apply(moves))
+        {
+            var mapString = map.Render();
+            _testOutputHelper.WriteLine($"{m}");
+            _testOutputHelper.WriteLine(mapString);
+        }
+        _testOutputHelper.WriteLine(expectedMap);
+        Assert.Equal(expectedMap.ReplaceLineEndings(""), map.Render().ReplaceLineEndings(""));
         if (!expectedSum.HasValue) return;
         var sum = Solution.Calculate(map);
         Assert.Equal(expectedSum, sum);
