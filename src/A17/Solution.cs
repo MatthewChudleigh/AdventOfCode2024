@@ -1,162 +1,128 @@
-﻿namespace A17;
+﻿using System.Numerics;
 
-public class Computer
+namespace A17;
+
+public class Computer(Computer.StateData state, List<ushort> instructions, List<ushort>? targetOutput)
 {
-    public int RegA { get; set; }
-    public int RegB { get; set; }
-    public int RegC { get; set; }
+    public record StateData(BigInteger A, BigInteger B, BigInteger C, BigInteger Pointer);
 
-    public int Pointer { get; set; }
-    public List<int> Instructions { get; set; } = new();
-    public List<int> Output { get; set; } = new();
+    public StateData State { get; private set; } = state;
+    public IReadOnlyList<ushort> Instructions { get; } = instructions;
+    public IReadOnlyList<ushort>? TargetOutput { get; } = targetOutput;
+    public List<int> Output { get; } = [];
 
-    public Dictionary<int, IOp> OpCodes { get; } = new Dictionary<int, IOp>()
+    public Dictionary<int, Func<Computer, BigInteger, StateData>> OpCodes { get; } = new()
     {
-        { 0, new OpAdv() },
-        { 1, new OpBxl() },
-        { 2, new OpBst() },
-        { 3, new OpJnz() },
-        { 4, new OpBxc() },
-        { 5, new OpOut() },
-        { 6, new OpBdv() },
-        { 7, new OpCdv() }
+        { 0, (c, i) => c.State with { A = Operate(c, i), Pointer = c.State.Pointer + 2 } },
+        { 1, (c, i) => c.State with { B = c.State.B ^ i, Pointer = c.State.Pointer + 2 } },
+        { 2, (c, i) => c.State with { B = c.Combo(i) % 8, Pointer = c.State.Pointer + 2 } },
+        { 3, (c, i) => c.State with { Pointer = c.State.A != 0 ? i : c.State.Pointer + 2 } },
+        { 4, (c, _) => c.State with { B = c.State.B ^ c.State.C, Pointer = c.State.Pointer + 2 } },
+        { 5, OpOutput },
+        { 6, (c, i) => c.State with { B = Operate(c, i), Pointer = c.State.Pointer + 2 } },
+        { 7, (c, i) => c.State with { C = Operate(c, i), Pointer = c.State.Pointer + 2 }}
     };
+    
+    public static StateData OpOutput(Computer computer, BigInteger operand)
+    {
+        computer.Output.Add((ushort)(computer.Combo(operand) % 8));
+        var idx = computer.Output.Count - 1;
+        if (computer.TargetOutput != null && (idx >= computer.TargetOutput.Count || computer.Output[idx] != computer.TargetOutput[idx]))
+        {
+            return computer.State with { Pointer = (ulong)computer.Instructions.Count + 1 };
+        }
+        return computer.State with { Pointer = computer.State.Pointer + 2 };
+    }
+    
+    public static BigInteger Operate(Computer computer, BigInteger operand)
+    {
+        var op = computer.Combo(operand);
+        var num = computer.State.A;
+        var den = (ulong)0b1 << (ushort)op;
 
-    public int Combo(int operand)
+        return (num / den);
+    }
+
+    public BigInteger Combo(BigInteger operand)
     {
         if (operand <= 3) return operand;
-        if (operand == 4) return RegA;
-        if (operand == 5) return RegB;
-        if (operand == 6) return RegC;
+        if (operand == 4) return State.A;
+        if (operand == 5) return State.B;
+        if (operand == 6) return State.C;
         throw new InvalidOperationException();
     }
 
     public void Calculate()
     {
-        while (Pointer + 1 < Instructions.Count)
+        while (State.Pointer + 1 < (ulong)Instructions.Count)
         {
-            var op = OpCodes[Instructions[Pointer]];
-            var operand = Instructions[Pointer + 1];
-            op.Operate(this, operand);
+            var op = OpCodes[Instructions[(ushort)State.Pointer]];
+            var operand = Instructions[(ushort)State.Pointer + 1];
+            State = op(this, operand);
         }
-    }
-}
-
-public interface IOp
-{
-    void Operate(Computer computer, int operand);
-}
-
-public class OpXdv
-{
-    public static int Operate(Computer computer, int operand)
-    {
-        operand = computer.Combo(operand);
-        var num = computer.RegA;
-        var den = 0b1 << operand;
-
-        computer.Pointer += 2;
-        return (num / den);
-    }
-}
-
-public class OpAdv : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        computer.RegA = OpXdv.Operate(computer, operand);
-    }
-}
-
-public class OpBdv : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        computer.RegB = OpXdv.Operate(computer, operand);
-    }
-}
-
-public class OpCdv : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        computer.RegC = OpXdv.Operate(computer, operand);
-    }
-}
-
-public class OpBxl : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        var xor = computer.RegB ^ operand;
-        computer.RegB = xor;
-        computer.Pointer += 2;
-    }
-}
-
-public class OpBst : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        operand = computer.Combo(operand);
-        var mod = operand % 8;
-        computer.RegB = mod;
-        computer.Pointer += 2;
-    }
-}
-
-public class OpJnz : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        if (computer.RegA != 0)
-        {
-            computer.Pointer = operand;
-        }
-        else
-        {
-            computer.Pointer += 2;
-        }
-    }
-}
-
-public class OpBxc : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        var xor = computer.RegB ^ computer.RegC;
-        computer.RegB = xor;
-        computer.Pointer += 2;
-    }
-}
-
-public class OpOut : IOp
-{
-    public void Operate(Computer computer, int operand)
-    {
-        operand = computer.Combo(operand);
-        var mod = operand % 8;
-        computer.Output.Add(mod);
-        computer.Pointer += 2;
     }
 }
 
 public static class Solution
 {
-    public static Computer Load(string[] data)
+    public static Computer Load(string[] data, List<ushort>? targetOutput)
     {
-        var regA = int.Parse(data[0].Split(":")[1]);
-        var regB = int.Parse(data[1].Split(":")[1]);
-        var regC = int.Parse(data[2].Split(":")[1]);
-        var instructions = data[4].Split(":")[1].Split(",").Select(Int32.Parse).ToList();
+        var regA = ulong.Parse(data[0].Split(":")[1]);
+        var regB = ulong.Parse(data[1].Split(":")[1]);
+        var regC = ulong.Parse(data[2].Split(":")[1]);
+        var instructions = data[4].Split(":")[1].Split(",").Select(ushort.Parse).ToList();
 
-        return new Computer()
+        var state = new Computer.StateData(regA, regB, regC, 0);
+        return new Computer(state, instructions, targetOutput);
+    }
+
+    public static BigInteger? Quine(IReadOnlyList<ushort> targetOutput)
+    {
+        return Quine(targetOutput, 0, 0, 0);
+    }
+
+    private static BigInteger? Quine(IReadOnlyList<ushort> targetOutput, int index, BigInteger output, BigInteger writeMask)
+    {
+        if (index == targetOutput.Count)
         {
-            Instructions = instructions,
-            RegA = regA,
-            RegB = regB,
-            RegC = regC,
-            Pointer = 0
-        };
+            return output;
+        }
+        // a == A%8
+        //  ((A >> (a xor 7)) xor a) % 8
+        for (ushort i = 0; i <= 7; ++i)
+        {
+            var q = Quine(targetOutput, index, i, output, writeMask);
+            if (q != null)
+            {
+                return q;
+            }
+        }
+
+        return null;
+    }
+
+    private static BigInteger? Quine(IReadOnlyList<ushort> targetOutput, int index, ushort i, BigInteger output, BigInteger writeMask)
+    {
+        var target = (BigInteger)targetOutput[index];
+        var inputMask = (BigInteger)(7) << (index * 3);
+        var input = (BigInteger)(i) << (index * 3);
+
+        if ( (output & inputMask & writeMask) != (input & writeMask))
+        {   // Prevent overwrite with different values
+            return null;
+        }
+
+        writeMask |= inputMask;
+
+        var offset = index * 3 + (i ^ 7);
+        var valMask = (BigInteger)(7) << offset;
+        var val = (target ^ i) << offset;
+        if ((output & valMask & writeMask) != (val & writeMask))
+        {   // Prevent overwrite with different values
+            return null;
+        }
+        
+        writeMask |= valMask;
+        return Quine(targetOutput, ++index, output | input | val, writeMask);
     }
 }
