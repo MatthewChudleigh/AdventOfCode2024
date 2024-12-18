@@ -11,12 +11,8 @@ public class Solution
     }
 
     
-    public static int? Solve(int width, int height, string[] walls, int wallCount)
+    public static int? Solve(int width, int height, (int X, int Y)[] walls, int wallCount)
     {
-        var choices = new List<(int X, int Y)>()
-        {
-            (1, 0), (-1, 0), (0, 1), (0, -1)
-        };
         var map = new Map()
         {
             Width = width,
@@ -24,13 +20,32 @@ public class Solution
         };
 
         var t = 0;
-        foreach (var wall in walls.Select(w => w.Split(",").Select(Int32.Parse).ToList()))
+        while (t < wallCount)
         {
-            map.Walls.TryAdd((wall[0], wall[1]), 0);
+            map.Walls.TryAdd((walls[t].X, walls[t].Y), 0);
             t++;
-            if (wallCount == t) break;
         }
 
+        int? minSteps = null;
+        while (t <= walls.Length)
+        {
+            minSteps = Solve(map);
+            if (minSteps == null)
+            {
+                Console.WriteLine(walls[t-1]);
+                break;
+            }
+
+            map.Walls.TryAdd((walls[t].X, walls[t].Y), 0);
+            t++;
+        }
+        
+        return minSteps;
+    }
+
+    public static readonly List<(int X, int Y)> Choices = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    public static int? Solve(Map map)
+    {
         var visited = new Dictionary<(int X, int Y), int>();
         var paths = new Stack<(int X, int Y, int Steps)>();
 
@@ -46,13 +61,13 @@ public class Solution
 
             visited[(path.X, path.Y)] = path.Steps;
             
-            if (path.X == width - 1 && path.Y == height - 1)
+            if (path.X == map.Width - 1 && path.Y == map.Height - 1)
             {
                 minSteps = path.Steps <= (minSteps ?? path.Steps) ? path.Steps : minSteps;  
                 continue;
             }
             
-            foreach (var choice in choices.Select(xy => (X: path.X + xy.X, Y: path.Y + xy.Y))
+            foreach (var choice in Choices.Select(xy => (X: path.X + xy.X, Y: path.Y + xy.Y))
                          .Where(xy => 0 <= xy.X && xy.X < map.Width)
                          .Where(xy => 0 <= xy.Y && xy.Y < map.Height)
                          .ToList())
@@ -63,7 +78,7 @@ public class Solution
                 }
             }
         }
-        
+
         return minSteps;
     }
 }
