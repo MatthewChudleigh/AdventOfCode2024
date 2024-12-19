@@ -11,20 +11,36 @@ public static class Solution
         public (int X, int Y) Start { get; set; }
         public (int X, int Y) End { get; set; }
         public HashSet<(int X, int Y)> Track { get; } = new();
-        public Dictionary<(int X, int Y, int Dir), int> Weights { get; } = new();
+        public Dictionary<(int X, int Y, int Dir), (int? Cost, HashSet<Path> Parents)>  Weights { get; } = new();
     }
 
     public record Path((int X, int Y) Position, int Dir, int Cost);
 
     public static List<(int X, int Y)> Dirs = [(1,0), (0, 1), (-1, 0), (0, -1)];
 
-    public static int? CalculateMinScore(Map map)
+    public static (int? MinScore, int? BestSeats) CalculateMinScore(Map map)
     {
         var paths = new Stack<Path>();
         paths.Push(new Path(map.Start, 0, 0));
+        map.Weights[(map.Start.X, map.Start.Y, 0)] = (0, []);
 
+        var endDir = new List<int>();
         while (paths.TryPop(out var path))
         {
+            if (map.End == (path.Position.X, path.Position.Y))
+            {
+                if (path.Cost <= (map.MinScore ?? path.Cost))
+                {
+                    if (path.Cost < (map.MinScore ?? path.Cost))
+                    {
+                        endDir.Clear();
+                    } 
+                    endDir.Add(path.Dir);
+                    map.MinScore = path.Cost;
+                }
+                continue;
+            }
+            
             var choices = (new List<(int Dir, int Cost)>()
                 { (path.Dir, 1), (path.Dir == 0 ? 3 : path.Dir - 1, 1001), (path.Dir == 3 ? 0 : path.Dir + 1, 1001) })
                 .Select(choice => new Path(
@@ -34,27 +50,51 @@ public static class Solution
                 .Where(p => map.Track.Contains(p.Position)).ToList();
             foreach (var choice in choices)
             {
-                Test(map, paths, choice);
+                Test(map, paths, path, choice);
             }
         }
+        
+        foreach (var d in endDir)
+        {
+            paths.Push(new Path(map.End, d, 0));
+        }
 
-        return map.MinScore;
+        var bestSeats = new HashSet<(int X, int Y)>();
+        
+        while (paths.TryPop(out var path))
+        {
+            bestSeats.Add((path.Position.X, path.Position.Y));
+            var w = map.Weights[(path.Position.X, path.Position.Y, path.Dir)];
+            foreach (var p in w.Parents)
+            {
+                paths.Push(p);
+            }
+        }
+        
+        return (map.MinScore, bestSeats.Count);
     }
 
-    public static void Test(Map map, Stack<Path> paths, Path path)
+    public static void Test(Map map, Stack<Path> paths, Path parentPath, Path path)
     {
         var (x, y) = (path.Position.X, path.Position.Y);
-        if (map.End == (x, y))
+
+        var key = (x, y, path.Dir);
+        if (!map.Weights.TryGetValue(key, out var w))
         {
-            if (path.Cost <= (map.MinScore ?? path.Cost))
-            {
-                map.MinScore = path.Cost;
-            }
+            w = (null, []);
         }
-        else if (!map.Weights.TryGetValue((x, y, path.Dir), out var w) || path.Cost < w)
+
+        if (!w.Cost.HasValue || path.Cost < w.Cost)
         {
-            map.Weights[(x, y, path.Dir)] = path.Cost;
+            w.Parents.Clear();
+            
             paths.Push(path);
+        }
+        
+        if (!w.Cost.HasValue || path.Cost <= w.Cost)
+        {
+            w.Parents.Add(parentPath);
+            map.Weights[key] = w with { Cost = path.Cost };
         }
     }
     
