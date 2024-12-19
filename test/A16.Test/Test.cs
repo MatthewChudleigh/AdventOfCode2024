@@ -57,16 +57,17 @@ public class Test
                                   """;
 
     [Theory]
-    [InlineData(SmallMap1, 2)]
-    [InlineData(SmallMap2, 3004)]
-    [InlineData(SmallMap3, null)]
-    [InlineData(MedMap1, 7036)]
-    [InlineData(MedMap2, 11048)]
-    public void MapTest(string mapString, int? expectedMinScore)
+    [InlineData(SmallMap1, 2, 3)]
+    [InlineData(SmallMap2, 3004, 8)]
+    [InlineData(SmallMap3, null, 0)] 
+    [InlineData(MedMap1, 7036, 45)]
+    [InlineData(MedMap2, 11048, 64)]
+    public void MapTest(string mapString, int? expectedMinScore, int expectedBestSeats)
     {
-        var lines = mapString.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var lines = mapString.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var map = Solution.LinesToMap(lines);
-        var minScore = Solution.CalculateMinScore(map);
+        var (minScore, bestSeats) = Solution.CalculateMinScore(map);
         Assert.Equal(expectedMinScore, minScore);
+        Assert.Equal(expectedBestSeats, bestSeats);
     }
 }
