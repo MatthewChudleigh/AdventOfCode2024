@@ -4,52 +4,41 @@ public static class Solution
 {
     // white (w), blue (u), black (b), red (r), or green (g)
 
-    public class Onsen(string towels, List<string> designs)
+    public class Onsen(string towels, ICollection<string> designs)
     {
         public List<string> Towels { get; } = towels.Split(",", StringSplitOptions.RemoveEmptyEntries)
             .Select(x => x.Trim())
             .OrderByDescending(x => x.Length).ThenBy(x => x).ToList();
         public ICollection<string> Designs { get; set; } = designs;
-        public HashSet<string> Possible { get; set; } = new();
-        public HashSet<string> NotPossible { get; set; } = new();
-        public bool IsPossible(string[] design)
+        
+        public long IsPossible(string design, int index)
         {
-            if (design.Length == 0)
-            {
-                return true;
-            }
+            var checkedIndex = new Dictionary<int, long>();
 
-            foreach (var d in design.Where(t => !Possible.Contains(t)))
+            return Loop(index);
+            
+            long Loop(int idx)
             {
-                if (NotPossible.Contains(d)) { return false; }
-                
-                var isPossible = false;
-                foreach (var t in Towels.
-                             Where(t => t.Length <= d.Length).
-                             Where(t => d.Contains(t)))
+                if (checkedIndex.TryGetValue(idx, out var n)) return n;
+                if (idx >= design.Length)
                 {
-                    if (t == d)
+                    return 1L;
+                }
+
+                var m = 0L;
+                foreach (var towel in Towels)
+                {
+                    if (design.AsSpan()[idx..].StartsWith(towel))
                     {
-                        isPossible = true;
-                        break;
+                        var x = idx + towel.Length;
+                        var c = Loop(x);
+                        checkedIndex[x] = c;
+                        m += c;
                     }
-                    var subTowels = d.Split(t, StringSplitOptions.RemoveEmptyEntries);
-                    isPossible = IsPossible(subTowels);
-                    if (isPossible) break;
                 }
 
-                if (isPossible)
-                {
-                    Possible.Add(d);
-                }
-                else
-                {
-                    NotPossible.Add(d);
-                    return false;
-                }
+                return m;
             }
-
-            return true;
         }
     }
 
@@ -59,9 +48,9 @@ public static class Solution
         return towels;
     }
 
-    public static int PossibleDesigns(Onsen onsen)
+    public static (int Possible, long Permute) PossibleDesigns(Onsen onsen)
     {
-        var n = onsen.Designs.Count(t => onsen.IsPossible([t]));
-        return n;
+        var n = onsen.Designs.Select(t => onsen.IsPossible(t, 0)).ToList();
+        return (n.Count(x => x > 0), n.Sum());
     }
 }

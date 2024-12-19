@@ -23,8 +23,9 @@ public class Test
         Assert.Equal(8, onsen.Towels.Count);
         Assert.Equal(8, onsen.Designs.ToList().Count);
 
-        var possible = Solution.PossibleDesigns(onsen);
+        var (possible, permute) = Solution.PossibleDesigns(onsen);
         Assert.Equal(6, possible);
+        Assert.Equal(14, permute);
     }
 
     [Theory]
@@ -47,7 +48,7 @@ public class Test
     public void TestTowel(string design, bool expectedPossible)
     {
         var onsen = new Solution.Onsen("r, wr, b, g, bwu, rb, gb, br", []);
-        var isPossible = onsen.IsPossible([design]);
-        Assert.Equal(expectedPossible, isPossible);
+        var isPossible = onsen.IsPossible(design, 0);
+        Assert.Equal(expectedPossible, isPossible > 0);
     }
 }
