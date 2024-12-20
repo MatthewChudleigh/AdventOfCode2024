@@ -6,10 +6,9 @@ public static class Solution
     {
         public (int X, int Y) Start { get; set; }
         public (int X, int Y) End { get; set; }
-        public Dictionary<(int X, int Y), int> Points { get; set; } = new();
-        public HashSet<(int X, int Y)> Walls { get; set; } = new();
+        public Dictionary<(int X, int Y), int> Points { get; } = new();
 
-        private static readonly List<(int X, int Y)> Off = [(-1,0), (1, 0), (0,-1), (0, 1)];
+        private static readonly List<(int X, int Y)> Off = [(0,-1), (-1,0), (1, 0), (0, 1)];
         public void Calc()
         {
             var test = new Stack<(int X, int Y, int Cost)>();
@@ -33,41 +32,27 @@ public static class Solution
 
         public Dictionary<int, int> Cheats(int maxMoves)
         {
-            var costs = new Dictionary<int, int>();
-            foreach (var (xy, start) in Points)
-            {
-                var visited = new Dictionary<(int X, int Y), int>();
-                var paths = new Stack<((int X, int Y) Pos, int M)>();
-
-                foreach (var o1 in Off)
-                {
-                    var pos1 = (xy.X + o1.X, xy.Y + o1.Y);
-                    paths.Push((pos1, 1));
-                }
-                
-                while (paths.TryPop(out var path))
-                {
-                    if (path.M > maxMoves) continue;
-                    if (visited.TryGetValue(path.Pos, out var m) && path.M <= m) continue;
-                    visited[path.Pos] = path.M;
-                    
-                    if (Points.TryGetValue(path.Pos, out var end) && start < end)
-                    {
-                        costs.TryGetValue(end - (start + path.M), out var c);
-                        costs[end - (start + path.M)] = ++c;
-                    }
-                    else if (Walls.Contains(path.Pos))
-                    {
-                        foreach (var o1 in Off)
-                        {
-                            var pos1 = (path.Pos.X + o1.X, path.Pos.Y + o1.Y);
-                            paths.Push((pos1, path.M + 1));
-                        }
+            var end = Points[End];
+            var cheats = new Dictionary<int, int>();
+            var points = Points.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToList();
+            for (var i = 0; i < points.Count - 1; ++i)
+            {   // For each step along the path
+                for (var j = i + 1; j < points.Count; ++j)
+                {   // to each possible end point
+                    // Find the shortest distance between the two points
+                    var dist = Math.Abs((points[j].X - points[i].X)) + Math.Abs((points[j].Y - points[i].Y));
+                    var cheat = (j - (i + dist));
+                    if (dist <= maxMoves && cheat >= 100)
+                    {   // If the cheat distance does not exceed the maximum allowed,
+                        // and it improves the time by >= 100
+                        // record it
+                        cheats.TryGetValue(cheat, out var d);
+                        cheats[cheat] = d + 1;
                     }
                 }
             }
 
-            return costs;
+            return cheats;
         }
     }
 
@@ -93,11 +78,6 @@ public static class Solution
 
                     track.Points[(x, y)] = -1;
                 }
-                else
-                {
-                    track.Walls.Add((x, y));
-                }
-                
 
                 x++;
             }
