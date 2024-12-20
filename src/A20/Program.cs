@@ -3,12 +3,12 @@
 using A20;
 
 var baseDir = Environment.GetEnvironmentVariable("AOC_BaseDir");
-var data = File.ReadAllLines(Path.Combine(baseDir!, "A20.data.txt"));
+var data = File.ReadAllLines(Path.Combine(baseDir!, "A20.test.txt"));
 var track = Solution.Load(data);
 track.Calc();
 var count = track.Points[track.End];
 Console.WriteLine(count);
-var cheats = track.Cheats();
+var cheats = track.Cheats(2);
 
 var end = track.Points[track.End];
 var savings = 0;
