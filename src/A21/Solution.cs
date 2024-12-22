@@ -9,93 +9,112 @@ public static class Solution
     
     public static (string moves, long total) Calculate(char start, string code, int robots)
     {
-        var moves = GetAllMoves(Keypad, start, code, robots);
+        var moves = GetAllMoves(Keypad, start, (0,0), code, robots-1);
         long.TryParse(code[..^1], out var val);
         return (moves.moves, total: moves.total * val);
     }
+
+    public static List<(int X, int Y)> Dirs { get; } =
+    [
+        (-1, 0), (1, 0), (0, -1), (0, 1)
+    ];
+
+    public record Step((int X, int Y) Pos, (int X, int Y) StartDir, (int X, int Y) Dir, string Moves);
+    public class StepQueue : PriorityQueue<Step, int>;
     
-    public static (string moves, long total) GetAllMoves(InputDevice input, char start, string code, int robots)
+    public static (string moves, long total) GetAllMoves(InputDevice input, char start, (int X, int Y) startDir, string code, int robots)
     {
         var total = 0L;
 
         var pos = input.Keys[start];
         var allMoves = new StringBuilder();
-        foreach (var c in code)
+        foreach (var target in code)
         {
-            var end = input.Keys[c];
-            
-            var dx = pos.X < end.X ? 1 : pos.X > end.X ? -1 : 0;
-            var dy = pos.Y < end.Y ? 1 : pos.Y > end.Y ? -1 : 0;
+            var targetPos = input.Keys[target];
 
-            if ((dx != 0 && Costs.TryGetValue((pos, (X: dx, Y: 0), end, robots), out var cost))
-                || (dy != 0 && Costs.TryGetValue((pos, (X: 0, Y: dy), end, robots), out cost)))
+            long? minCache = null;
+            var steps = new StepQueue();
+            foreach (var dir in Dirs)
             {
-                total += cost;
-                pos = end;
+                if (Costs.TryGetValue((pos, startDir, targetPos, robots), out var cache))
+                {   // Going from this pos from this dir to this point at this level
+                    minCache = cache <= (minCache ?? cache) ? cache : minCache;
+                }
+                else
+                {
+                    steps.Enqueue(new Step(pos, dir, dir, ""), 0);
+                }
+            }
+
+            if (minCache.HasValue)
+            {
+                total += minCache.Value;
+                pos = targetPos;
                 continue;
             }
+
+            var (moves, best) = FindBest(input, steps, target, robots);
+            if (!best.HasValue) throw new Exception();
             
-            var toVisit = new PriorityQueue<((int X, int Y) Pos, (int X, int Y) Dir, StringBuilder Moves), int>();
-
-            if (dx != 0)
-            {
-                toVisit.Enqueue(((X: pos.X+dx, pos.Y), (dx, 0), new StringBuilder($"{start}")), 0);
-            }
-            if (dy != 0)
-            {
-                toVisit.Enqueue(((X: pos.X, Y: pos.Y + dy), (0, dy), new StringBuilder($"{start}")), 0);
-            }
-
-            var current = 0L;
-            var visited = new HashSet<(int X, int Y)>();
+            allMoves.Append(moves);
+            total += best.Value;
             
-            while (toVisit.TryDequeue(out var cur, out var dist))
-            {
-                if (!input.Map.TryGetValue(cur.Pos, out var n)) continue;
-                if (cur.Pos == end)
-                {
-                    var moves = cur.Moves.ToString();
-                    if (robots == 0)
-                    {
-                        current += moves.Length;
-                        allMoves.Append(moves);
-                    }
-                    else
-                    {
-                        var x = new StringBuilder(moves);
-                        x.Append(c);
-                        var (m, cost1) = GetAllMoves(Arrows, c, moves, robots - 1);
-                        current += cost1;
-                    }
-                    break;
-                }
-
-                if (!visited.Add(cur.Pos)) continue;
-                
-                dx = cur.Pos.X < end.X ? 1 : cur.Pos.X > end.X ? -1 : 0;
-                dy = cur.Pos.Y < end.Y ? 1 : cur.Pos.Y > end.Y ? -1 : 0;
-
-                var next = new StringBuilder(cur.Moves.ToString());
-                next.Append(c);
-                
-                if (dx != 0)
-                {
-                    toVisit.Enqueue(((X: cur.Pos.X + dx, Y: cur.Pos.Y), (dx, 0), next), dist + 1);
-                }
-                if (dy != 0)
-                {
-                    toVisit.Enqueue(((X: cur.Pos.X, Y: cur.Pos.Y + dy), (0, dy), next), dist + 1);
-                }
-            }
-
-            total += current;
-            pos = end;
+            pos = targetPos;
         }
         
         return (allMoves.ToString(), total);
     }
 
-    public static Dictionary<((int X, int Y) Pos, (int X, int Y) Dir, (int X, int Y) Tgt, int Robot), int> Costs = new();
+    public static (string Moves, long? Best) FindBest(InputDevice input, StepQueue steps, char end, int robots)
+    {
+        var minMoves = "";
+        long? min = null;
+        var visited = new HashSet<(int X, int Y)>();
+            
+        while (steps.TryDequeue(out var cur, out var dist))
+        {
+            var next = (X: cur.Pos.X+cur.Dir.X, Y: cur.Pos.Y+cur.Dir.Y);
+            if (!input.Map.TryGetValue(next, out var nextKey)) continue;
+            if (!visited.Add(next)) continue;
+            
+            var nextMove = input.Moves[(input.Map[cur.Pos], nextKey)];
+            var moves = cur.Moves + nextMove;
+                
+            if (next == input.Keys[end])
+            {
+                moves += 'A';
+                if (robots == 0)
+                {
+                    if (moves.Length <= (min ?? moves.Length))
+                    {
+                        min = moves.Length;
+                        minMoves = moves;
+                    }
+                    
+                }
+                else
+                {
+                    var (m, cost) = GetAllMoves(Arrows, 'A', cur.StartDir, moves, robots - 1);
+                    if (cost < (min ?? cost))
+                    {
+                        min = cost;
+                        minMoves = m;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var dir in Dirs)
+                {
+                    steps.Enqueue(new Step(next, cur.StartDir, dir, moves), dist + 1);
+                }
+            }
+        }
+
+        return (minMoves, min);
+    }
+
+    public static Dictionary<((int X, int Y) Pos, (int X, int Y) Dir, (int X, int Y) Tgt, int Robot), long> Costs = new();
 }
 
 public class InputDevice
