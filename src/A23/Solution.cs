@@ -1,11 +1,108 @@
+using System.Collections;
+using System.Numerics;
+
 namespace A23;
 
 public static class Solution
 {
+    public static string SolvePart2(Dictionary<string, HashSet<string>> dict)
+    {
+        var idx = 0;
+        var index = new Dictionary<string, int>();
+        var rev = new Dictionary<int, string>();
+        var nodes = new List<BitArray>();
+
+        foreach (var a in dict)
+        {
+            if (!index.TryGetValue(a.Key, out var i))
+            {
+                i = idx;
+                index[a.Key] = i;
+                rev[i] = a.Key;
+                idx++;
+            }
+            
+            var d = new BitArray(dict.Keys.Count);
+            d.Set(i, true);
+
+            foreach (var b in a.Value)
+            {
+                if (!index.TryGetValue(b, out var j))
+                {
+                    j = idx;
+                    index[b] = j;
+                    rev[j] = b;
+                    idx++;
+                }
+                
+                d.Set(j, true);
+            }
+            
+            nodes.Add(d);
+        }
+
+        var largest = new List<int>();
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            var node = Iterate(nodes, nodes[i], i+1);
+            
+            if (node.Count > largest.Count)
+            {
+                largest = node;
+            }
+        }
+
+        return string.Join(",", largest.Select(i => rev[i]).Order());
+    }
+
+    public static List<int> Iterate(List<BitArray> nodes, BitArray node, int index){
+        var largest = new List<int>();
+        if (index >= node.Count)
+        {
+            return node.ToIndexes();
+        }
+        
+        for (var i = index; i < nodes.Count; i++)
+        {
+            if (!node[i]) continue;
+            var n = nodes[i].And(node);
+            if (!node[i - 1]) continue;
+            
+            var l = Iterate(nodes, n, i + 1);
+            if (l.Count > largest.Count)
+            {
+                largest = l;
+            }
+        }
+        
+        return largest;
+    }
+    
+    public static List<int> ToIndexes(this BitArray array)
+    {
+        return array.Cast<bool>().Select((b, i) => (b, i)).Where(bi => bi.b).Select(bi => bi.i).ToList();
+    }
+
     public static int Solve(char t, string[] data)
     {
         var dict = ToDict(data);
         return Solve(t, dict);
+    }
+    
+    public static int Solve(char t, Dictionary<string, HashSet<string>> pairs)
+    {
+        var hashset = new HashSet<string>();
+        foreach (var n0 in pairs.Where(k =>
+                     k.Key.StartsWith(t)).SelectMany(k => k.Value.Select(v => (k.Key, v))))
+        {
+            foreach (var n1 in pairs[n0.v].Where(n => n != n0.Key).Where(n => pairs[n].Contains(n0.Key)))
+            {
+                List<string> s = [n0.Key, n0.v, n1];
+                hashset.Add(string.Join("", s.Order()));
+            }
+        }
+
+        return hashset.Count;
     }
 
     public static Dictionary<string, HashSet<string>> ToDict(string[] data)
@@ -30,58 +127,5 @@ public static class Solution
         }
 
         return dict;
-    }
-
-    public static string SolvePart2(Dictionary<string, HashSet<string>> dict)
-    {
-        List<string> largest = [];
-        var check = new HashSet<string>();
-        foreach (var kv in dict)
-        {
-            check.Add(kv.Key);
-            foreach (var v in kv.Value.Where(v => !check.Contains(v)))
-            {
-                var code = Calculate(dict, [v, kv.Key]);
-                if (code.Count > largest.Count)
-                {
-                    largest = code;
-                }
-            }
-        }
-
-        return string.Join(",", largest.Order());
-    }
-
-    static List<string> Calculate(Dictionary<string, HashSet<string>> dict, List<string> set)
-    {
-        var largest = set;
-        foreach (var v in dict[set[0]])
-        {
-            if(set.Contains(v)) continue;
-            if(set.Any(s => !dict[v].Contains(s))) continue;
-            var l = Calculate(dict, [v, ..set]);
-            if (l.Count > largest.Count)
-            {
-                largest = l;
-            }
-        }
-        
-        return largest;
-    }
-    
-    public static int Solve(char t, Dictionary<string, HashSet<string>> pairs)
-    {
-        var hashset = new HashSet<string>();
-        foreach (var n0 in pairs.Where(k =>
-                     k.Key.StartsWith(t)).SelectMany(k => k.Value.Select(v => (k.Key, v))))
-        {
-            foreach (var n1 in pairs[n0.v].Where(n => n != n0.Key).Where(n => pairs[n].Contains(n0.Key)))
-            {
-                List<string> s = [n0.Key, n0.v, n1];
-                hashset.Add(string.Join("", s.Order()));
-            }
-        }
-
-        return hashset.Count;
     }
 }
