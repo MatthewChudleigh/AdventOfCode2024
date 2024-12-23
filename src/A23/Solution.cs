@@ -22,6 +22,8 @@ public static class Solution
                 idx++;
             }
             
+            Console.WriteLine($"{a.Key}: {String.Join(", ", a.Value)}");
+
             var d = new BitArray(dict.Keys.Count);
             d.Set(i, true);
 
@@ -38,13 +40,16 @@ public static class Solution
                 d.Set(j, true);
             }
             
+            Console.WriteLine(String.Join(", ", d.ToIndexes().Select(x => rev[x])));
+            Console.WriteLine();
+            
             nodes.Add(d);
         }
 
         var largest = new List<int>();
         for (var i = 0; i < nodes.Count; i++)
         {
-            var node = Iterate(nodes, nodes[i], i+1);
+            var node = Iterate(rev, nodes, nodes[i], i);
             
             if (node.Count > largest.Count)
             {
@@ -55,24 +60,33 @@ public static class Solution
         return string.Join(",", largest.Select(i => rev[i]).Order());
     }
 
-    public static List<int> Iterate(List<BitArray> nodes, BitArray node, int index){
+    public static List<int> Iterate(Dictionary<int, string> rev, List<BitArray> nodes, BitArray node, int index)
+    {
         var largest = new List<int>();
-        if (index >= node.Count)
-        {
-            return node.ToIndexes();
-        }
-        
-        for (var i = index; i < nodes.Count; i++)
+
+        var fin = true;
+        for (var i = index+1; i < nodes.Count; i++)
         {
             if (!node[i]) continue;
-            var n = nodes[i].And(node);
-            if (!node[i - 1]) continue;
+            fin = false;
+            var n = (node.Clone() as BitArray)!.And(nodes[i]);
             
-            var l = Iterate(nodes, n, i + 1);
-            if (l.Count > largest.Count)
+            Console.Write($"{index}: {i} ({rev[i]}): ");
+            foreach (var z in node.ToIndexes()) { Console.Write(rev[z]); }
+            Console.Write(": ");
+            foreach (var z in n.ToIndexes()) { Console.Write(rev[z]); }
+            Console.WriteLine();
+            
+            var l = Iterate(rev, nodes, n, i);
+            if (largest.Count < l.Count)
             {
                 largest = l;
             }
+        }
+    
+        if (fin)
+        {
+            return node.ToIndexes();
         }
         
         return largest;
