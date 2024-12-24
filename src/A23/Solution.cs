@@ -7,43 +7,34 @@ public static class Solution
 {
     public static string SolvePart2(Dictionary<string, HashSet<string>> dict)
     {
-        var idx = 0;
         var index = new Dictionary<string, int>();
         var rev = new Dictionary<int, string>();
         var nodes = new List<BitArray>();
-
-        foreach (var a in dict)
+        foreach (var ki in dict.Keys.Order().Select((k,i) => (k,i)))
         {
-            if (!index.TryGetValue(a.Key, out var i))
-            {
-                i = idx;
-                index[a.Key] = i;
-                rev[i] = a.Key;
-                idx++;
-            }
-            
+            nodes.Add(new BitArray(dict.Keys.Count));
+            index[ki.k] = ki.i;
+            rev[ki.i] = ki.k;
+        }
+
+        var z = 0;
+        foreach (var a in dict.OrderBy(kv => kv.Key))
+        {
+            var i = index[a.Key];
             Console.WriteLine($"{a.Key}: {String.Join(", ", a.Value)}");
 
-            var d = new BitArray(dict.Keys.Count);
+            var d = nodes[z];
             d.Set(i, true);
 
             foreach (var b in a.Value)
             {
-                if (!index.TryGetValue(b, out var j))
-                {
-                    j = idx;
-                    index[b] = j;
-                    rev[j] = b;
-                    idx++;
-                }
-                
+                var j = index[b];
                 d.Set(j, true);
             }
             
             Console.WriteLine(String.Join(", ", d.ToIndexes().Select(x => rev[x])));
             Console.WriteLine();
-            
-            nodes.Add(d);
+            z++;
         }
 
         var largest = new List<int>();
@@ -72,9 +63,11 @@ public static class Solution
             var n = (node.Clone() as BitArray)!.And(nodes[i]);
             
             Console.Write($"{index}: {i} ({rev[i]}): ");
-            foreach (var z in node.ToIndexes()) { Console.Write(rev[z]); }
+            Console.Write(String.Join("", node.ToIndexes().Select(x => rev[x])));
             Console.Write(": ");
-            foreach (var z in n.ToIndexes()) { Console.Write(rev[z]); }
+            Console.Write(String.Join("", nodes[i].ToIndexes().Select(x => rev[x])));
+            Console.Write(": ");
+            Console.Write(String.Join("", n.ToIndexes().Select(x => rev[x])));
             Console.WriteLine();
             
             var l = Iterate(rev, nodes, n, i);
@@ -86,6 +79,7 @@ public static class Solution
     
         if (fin)
         {
+            Console.WriteLine($"fin: {index}: {string.Join(",", node.ToIndexes().Select(x => rev[x]))}");
             return node.ToIndexes();
         }
         
