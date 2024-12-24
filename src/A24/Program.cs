@@ -30,11 +30,13 @@ using System.Numerics;
 
 var baseDir = Environment.GetEnvironmentVariable("AOC_BaseDir");
 var data = File.ReadAllLines(Path.Combine(baseDir!, "A24.data.txt"));
+var graph = Path.Combine(baseDir!, "A24.dot");
 
 var values = data.Where(d => d.Contains(':'))
     .Select(d => d.Split(':'))
     .ToDictionary(d => d[0], d => Int32.Parse(d[1]));
 
+var computer = new Dictionary<string, (string lhs, string op, string rhs)>();
 var queue = new Queue<(string reg, string lhs, string op, string rhs)>();
 foreach (var d in data.Where(d => d.Contains("->")))
 {
@@ -42,10 +44,28 @@ foreach (var d in data.Where(d => d.Contains("->")))
     var b = a[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var l = b[0].Trim();
     var r = b[2].Trim();
+
+    if (String.Compare(l, r, StringComparison.Ordinal) > 0)
+    {
+        (r, l) = (l, r);
+    }
+    
     var reg = a[1].Trim();
-    var op = b[1].Trim();
+    var op = b[1].Trim() switch
+    {
+        "OR" => "|",
+        "XOR" => "^",
+        "AND" => "&",
+        _ => throw new ArgumentOutOfRangeException()
+    };
     
     queue.Enqueue((reg, l, op, r));
+    computer[reg] = (l, op, r);
+}
+
+foreach (var v in values)
+{
+    computer[v.Key] = ("0", v.Value == 0 ? "&" : "|", "1");
 }
 
 while (queue.TryDequeue(out var d))
@@ -54,9 +74,9 @@ while (queue.TryDequeue(out var d))
     {
         values[d.reg] = d.op switch
         {
-            "OR" => lhs | rhs,
-            "XOR" => lhs ^ rhs,
-            "AND" => lhs & rhs,
+            "|" => lhs | rhs,
+            "^" => lhs ^ rhs,
+            "&" => lhs & rhs,
             _ => throw new ArgumentException($"Unknown operator: {d.op}")
         };
     }
@@ -78,6 +98,10 @@ Console.WriteLine(Solution.Bin(y));
 Console.WriteLine("...");
 Console.WriteLine(Solution.Bin(x+y));
 Console.WriteLine(Solution.Bin(z));
+
+//Solution.Graph(graph, computer);
+//Solution.Print(computer);
+Solution.Analyse(computer);
 
 public static class Solution
 {
@@ -102,6 +126,97 @@ public static class Solution
         }
 
         return String.Join("", s);
+    }
+
+    public static void Analyse(Dictionary<string, (string lhs, string op, string rhs)> computer)
+    {
+        var node = "gtk";
+        var znode = "z41";
+        var op = computer[node];
+        var zop = computer[znode];
+        var lhs = computer[op.lhs];
+        var rhs = computer[op.rhs];
+
+        if (rhs.lhs.StartsWith("x") || rhs.lhs.StartsWith("y"))
+        {
+            (lhs, rhs) = (rhs, lhs);
+        }
+
+        var rx = rhs.rhs;
+        var rl = computer[rhs.lhs];
+        var rr = computer[rhs.rhs];
+        if (rl.op != "^")
+        {
+            (rr, rl) = (rl, rr);
+            rx = rhs.lhs;
+        }
+        
+        if (op.op != "|") { Console.WriteLine($"0: {node}: | : {op}"); }
+        if (zop.op != "^") { Console.WriteLine($"1: {node}: ^: {zop}"); }
+
+        if (lhs.op != "&") { Console.WriteLine($"2: {node}: & : {lhs}"); }
+        if (!lhs.lhs.StartsWith("x") || !lhs.rhs.StartsWith("y")) { Console.WriteLine($"4: {node}: xy : {lhs}"); }
+        
+        if (rhs.op != "&") { Console.WriteLine($"3: {node}: & : {rhs}"); }
+        if (rhs.lhs != zop.lhs || rhs.rhs != zop.rhs) { Console.WriteLine($"5: {node}: zop {zop} : {rhs}"); }
+
+        if (rl.op != "^") { Console.WriteLine($"6: {rhs.lhs}: ^: {rl}"); }
+        if (rl.lhs != lhs.lhs || rl.rhs != lhs.rhs) { Console.WriteLine($"7: {rhs.lhs}: lhs {lhs} : {rl}"); }
+        
+        if (rr.op != "|") { Console.WriteLine($"8: {rhs.rhs}: |: {rr}"); }
+
+        node = rx;
+        Console.WriteLine(node);
+    }
+
+    public static void Print(Dictionary<string, (string lhs, string op, string rhs)> computer)
+    {
+        
+        foreach (var zOp in computer.Where(kv => kv.Key.StartsWith('z')).Select(kv => kv.Key).Order())
+        {
+            var ops = new List<string>();
+            var inputs = new List<string>();
+            var stack = new Queue<string>();
+            stack.Enqueue(zOp);
+    
+            while (stack.TryDequeue(out var op))
+            {
+                if (op.StartsWith('x') || op.StartsWith('y'))
+                {
+                    inputs.Add(op);
+                }
+                else
+                {
+                    var rOp = computer[op];
+                    ops.Add($"{rOp.lhs} {rOp.op} {rOp.rhs}");
+                    stack.Enqueue(rOp.lhs);
+                    stack.Enqueue(rOp.rhs);
+                }
+            }
+    
+            var xI = inputs.Where(i => i.StartsWith('x')).Select(i => i[1..]).Order();
+            var yI = inputs.Where(i => i.StartsWith('y')).Select(i => i[1..]).Order();
+            //Console.WriteLine($"{zOp}:\nX: {string.Join(" ", xI)}\nY: {string.Join(" ", yI)}");
+
+            ops.Reverse();
+            //Console.WriteLine($"{zOp}: {string.Join(" ", ops)}");
+        }
+
+    }
+
+    public static void Graph(string file, Dictionary<string, (string lhs, string op, string rhs)> computer)
+    {
+        using var sw = new StreamWriter(file);
+        sw.WriteLine("digraph operations {");
+        foreach (var c in computer)
+        {
+            var op = c.Value.op switch { "|" => "or", "&" => "and", "^" => "xor", _ => "nop"};
+            sw.WriteLine($"    {c.Value.lhs} -> {c.Value.lhs}_{op}_{c.Value.rhs};");
+            sw.WriteLine($"    {c.Value.rhs} -> {c.Value.lhs}_{op}_{c.Value.rhs};");
+            sw.WriteLine($"    {c.Value.lhs}_{op}_{c.Value.rhs} -> {c.Key};");
+        }
+
+        sw.WriteLine("}");
     }
 }
 
