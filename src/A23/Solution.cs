@@ -21,7 +21,7 @@ public static class Solution
         foreach (var a in dict.OrderBy(kv => kv.Key))
         {
             var i = index[a.Key];
-            Console.WriteLine($"{a.Key}: {String.Join(", ", a.Value)}");
+            //Console.WriteLine($"{a.Key}: {String.Join(", ", a.Value)}");
 
             var d = nodes[z];
             d.Set(i, true);
@@ -32,15 +32,21 @@ public static class Solution
                 d.Set(j, true);
             }
             
-            Console.WriteLine(String.Join(", ", d.ToIndexes().Select(x => rev[x])));
-            Console.WriteLine();
+            //Console.WriteLine(String.Join(", ", d.ToIndexes().Select(x => rev[x])));
+            //Console.WriteLine();
             z++;
         }
 
         var largest = new List<int>();
         for (var i = 0; i < nodes.Count; i++)
         {
-            var node = Iterate(rev, nodes, nodes[i], i);
+            var n = (nodes[i].Clone() as BitArray)!;
+            for (var j = 0; j < i; ++j)
+            {
+                n.Set(j, false);
+            }
+            var node = Iterate(rev, nodes, n, i);
+            //Console.WriteLine($"** {i} : {rev[i]} : {string.Join(",", node.Select(m => rev[m]))}");
             
             if (node.Count > largest.Count)
             {
@@ -53,15 +59,27 @@ public static class Solution
 
     public static List<int> Iterate(Dictionary<int, string> rev, List<BitArray> nodes, BitArray node, int index)
     {
+        var fin = true;
+        while (index + 1 < nodes.Count)
+        {
+            index++;
+            if (!node[index]) continue;
+            fin = false;
+            break;
+        }
+
+        if (fin)
+        {
+            return node.ToIndexes();
+        }
+        
         var largest = new List<int>();
 
-        var fin = true;
-        for (var i = index+1; i < nodes.Count; i++)
+        for (var i = index; i < nodes.Count; i++)
         {
             if (!node[i]) continue;
-            fin = false;
             var n = (node.Clone() as BitArray)!.And(nodes[i]);
-            
+            /*
             Console.Write($"{index}: {i} ({rev[i]}): ");
             Console.Write(String.Join("", node.ToIndexes().Select(x => rev[x])));
             Console.Write(": ");
@@ -69,7 +87,7 @@ public static class Solution
             Console.Write(": ");
             Console.Write(String.Join("", n.ToIndexes().Select(x => rev[x])));
             Console.WriteLine();
-            
+            */
             var l = Iterate(rev, nodes, n, i);
             if (largest.Count < l.Count)
             {
@@ -77,12 +95,6 @@ public static class Solution
             }
         }
     
-        if (fin)
-        {
-            Console.WriteLine($"fin: {index}: {string.Join(",", node.ToIndexes().Select(x => rev[x]))}");
-            return node.ToIndexes();
-        }
-        
         return largest;
     }
     
