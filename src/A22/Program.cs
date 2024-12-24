@@ -13,11 +13,7 @@
    Calculate the result of multiplying the secret number by 2048.
    Then, mix this result into the secret number.
    Finally, prune the secret number.
-
-    (((SN xor (SN * 2^6)) & (2^24 - 1) xor ((SN xor (SN * 2^6)) & (2^24 - 1) * 2^-5)) & (2^24 - 1) xor (((SN xor (SN * 2^6)) & (2^24 - 1) xor ((SN xor (SN * 2^6)) & (2^24 - 1) * 2^-5)) & (2^24 - 1) * 2^11)) & (2^24 - 1)
  */
-
-using System.Numerics;
 
 var baseDir = Environment.GetEnvironmentVariable("AOC_BaseDir");
 var seeds = File.ReadAllLines(Path.Combine(baseDir!, "A22.data.txt"));
@@ -28,8 +24,8 @@ Console.WriteLine(bananas);
 
 public static class Solution
 {
-    public record Seq(long A, long B, long C, long D);
     public static long Mask = (1L << 24) - 1;
+    public record Seq(long A, long B, long C, long D);
     public static Dictionary<Seq, long> BaNaNaS = new();
 
     public static long Calculate(long n, int m)
@@ -37,14 +33,12 @@ public static class Solution
         var sequenced = new HashSet<Seq>();
         List<long> sx = [0, 0, 0, 0];
         
-        //Console.WriteLine($"{n} : {n%10}");
         for (var i = 0; i < m; ++i)
         {
             var n1 = Calculate(n);
             sx[i % 4] = (n1 % 10) - (n % 10);
             n = n1;
             
-            //Console.WriteLine($"{n1} : {n1%10} ({d})");
             if (i < 3) continue;
             
             var sequence = new Seq(sx[(i-3)%4], sx[(i-2)%4], sx[(i-1)%4], sx[i%4]);
@@ -63,16 +57,5 @@ public static class Solution
         n = (n ^ (n >> 5)) & Mask;
         n = (n ^ (n << 11)) & Mask;
         return n;
-    }
-    
-    public static BigInteger Sum(this IEnumerable<BigInteger> numbers, Func<BigInteger, BigInteger> fn)
-    {
-        var s = new BigInteger(0);
-        foreach (var n in numbers.Select(fn))
-        {
-            s += n;
-        }
-
-        return s;
     }
 }
