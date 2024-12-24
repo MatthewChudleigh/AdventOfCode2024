@@ -22,23 +22,42 @@ using System.Numerics;
 var baseDir = Environment.GetEnvironmentVariable("AOC_BaseDir");
 var seeds = File.ReadAllLines(Path.Combine(baseDir!, "A22.data.txt"));
 
-Console.WriteLine(seeds.Select(BigInteger.Parse).Sum(s => Solution.Calculate(s, 2000)));
+Console.WriteLine(seeds.Select(long.Parse).Sum(s => Solution.Calculate(s, 2000)));
+var bananas = Solution.BaNaNaS.Max(b => b.Value);
+Console.WriteLine(bananas);
 
 public static class Solution
 {
-    public static BigInteger Mask = (1L << 24) - 1;
+    public record Seq(long A, long B, long C, long D);
+    public static long Mask = (1L << 24) - 1;
+    public static Dictionary<Seq, long> BaNaNaS = new();
 
-    public static BigInteger Calculate(BigInteger n, int m)
+    public static long Calculate(long n, int m)
     {
+        var sequenced = new HashSet<Seq>();
+        List<long> sx = [0, 0, 0, 0];
+        
+        //Console.WriteLine($"{n} : {n%10}");
         for (var i = 0; i < m; ++i)
         {
-            n = Calculate(n);
+            var n1 = Calculate(n);
+            sx[i % 4] = (n1 % 10) - (n % 10);
+            n = n1;
+            
+            //Console.WriteLine($"{n1} : {n1%10} ({d})");
+            if (i < 3) continue;
+            
+            var sequence = new Seq(sx[(i-3)%4], sx[(i-2)%4], sx[(i-1)%4], sx[i%4]);
+            if (!sequenced.Add(sequence)) continue;
+            
+            BaNaNaS.TryGetValue(sequence, out var b);
+            BaNaNaS[sequence] = b + (n1 % 10);
         }
 
         return n;
     }
     
-    public static BigInteger Calculate(BigInteger n)
+    public static long Calculate(long n)
     {
         n = (n ^ (n << 6)) & Mask;
         n = (n ^ (n >> 5)) & Mask;

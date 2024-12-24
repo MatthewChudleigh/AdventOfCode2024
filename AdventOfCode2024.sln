@@ -25,6 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{554919E5-4
 		data\A24.test.txt = data\A24.test.txt
 		data\A24.data.txt = data\A24.data.txt
 		data\A22.data.txt = data\A22.data.txt
+		data\A22.test.txt = data\A22.test.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "A08", "A08", "{8DF30024-8E54-47B7-892C-46F35B2659AA}"
