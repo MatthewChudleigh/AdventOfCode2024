@@ -1,151 +1,75 @@
-using System.Collections;
-using System.Numerics;
-
 namespace A23;
 
 public static class Solution
 {
-    public static string SolvePart2(Dictionary<string, HashSet<string>> dict)
+    public static bool IsFullyConnected(Dictionary<string, List<string>> graph, List<string> nd)
     {
-        var index = new Dictionary<string, int>();
-        var rev = new Dictionary<int, string>();
-        var nodes = new List<BitArray>();
-        foreach (var ki in dict.Keys.Order().Select((k,i) => (k,i)))
+        for (var i = 0; i < nd.Count - 1; i++)
         {
-            nodes.Add(new BitArray(dict.Keys.Count));
-            index[ki.k] = ki.i;
-            rev[ki.i] = ki.k;
-        }
-
-        var z = 0;
-        foreach (var a in dict.OrderBy(kv => kv.Key))
-        {
-            var i = index[a.Key];
-            //Console.WriteLine($"{a.Key}: {String.Join(", ", a.Value)}");
-
-            var d = nodes[z];
-            d.Set(i, true);
-
-            foreach (var b in a.Value)
+            for (var j = i + 1; j < nd.Count; j++)
             {
-                var j = index[b];
-                d.Set(j, true);
-            }
-            
-            //Console.WriteLine(String.Join(", ", d.ToIndexes().Select(x => rev[x])));
-            //Console.WriteLine();
-            z++;
-        }
-
-        var largest = new List<int>();
-        for (var i = 0; i < nodes.Count; i++)
-        {
-            var n = (nodes[i].Clone() as BitArray)!;
-            for (var j = 0; j < i; ++j)
-            {
-                n.Set(j, false);
-            }
-            var node = Iterate(rev, nodes, n, i);
-            //Console.WriteLine($"** {i} : {rev[i]} : {string.Join(",", node.Select(m => rev[m]))}");
-            
-            if (node.Count > largest.Count)
-            {
-                largest = node;
+                var n1 = nd[i];
+                var n2 = nd[j];
+                if (!graph[n1].Contains(n2)) return false;
             }
         }
 
-        return string.Join(",", largest.Select(i => rev[i]).Order());
+        return true;
     }
 
-    public static List<int> Iterate(Dictionary<int, string> rev, List<BitArray> nodes, BitArray node, int index)
+    public static void Solve(string[] lines)
     {
-        var fin = true;
-        while (index + 1 < nodes.Count)
+        List<string> tComp = [];
+        Dictionary<string, List<string>> graph = new();
+        foreach (var line in lines.Select(l => l.Split("-")))
         {
-            index++;
-            if (!node[index]) continue;
-            fin = false;
-            break;
-        }
-
-        if (fin)
-        {
-            return node.ToIndexes();
-        }
-        
-        var largest = new List<int>();
-
-        for (var i = index; i < nodes.Count; i++)
-        {
-            if (!node[i]) continue;
-            var n = (node.Clone() as BitArray)!.And(nodes[i]);
-            /*
-            Console.Write($"{index}: {i} ({rev[i]}): ");
-            Console.Write(String.Join("", node.ToIndexes().Select(x => rev[x])));
-            Console.Write(": ");
-            Console.Write(String.Join("", nodes[i].ToIndexes().Select(x => rev[x])));
-            Console.Write(": ");
-            Console.Write(String.Join("", n.ToIndexes().Select(x => rev[x])));
-            Console.WriteLine();
-            */
-            var l = Iterate(rev, nodes, n, i);
-            if (largest.Count < l.Count)
+            foreach (var l in line)
             {
-                largest = l;
-            }
-        }
-    
-        return largest;
-    }
-    
-    public static List<int> ToIndexes(this BitArray array)
-    {
-        return array.Cast<bool>().Select((b, i) => (b, i)).Where(bi => bi.b).Select(bi => bi.i).ToList();
-    }
-
-    public static int Solve(char t, string[] data)
-    {
-        var dict = ToDict(data);
-        return Solve(t, dict);
-    }
-    
-    public static int Solve(char t, Dictionary<string, HashSet<string>> pairs)
-    {
-        var hashset = new HashSet<string>();
-        foreach (var n0 in pairs.Where(k =>
-                     k.Key.StartsWith(t)).SelectMany(k => k.Value.Select(v => (k.Key, v))))
-        {
-            foreach (var n1 in pairs[n0.v].Where(n => n != n0.Key).Where(n => pairs[n].Contains(n0.Key)))
-            {
-                List<string> s = [n0.Key, n0.v, n1];
-                hashset.Add(string.Join("", s.Order()));
-            }
-        }
-
-        return hashset.Count;
-    }
-
-    public static Dictionary<string, HashSet<string>> ToDict(string[] data)
-    {
-        var dict = new Dictionary<string, HashSet<string>>();
-        foreach (var kv in data
-                     .Select(l => l.Split('-')))
-        {
-            if(!dict.TryGetValue(kv[0], out var p0))
-            {
-                p0 = [];
-                dict[kv[0]] = p0;
-            }
-            if(!dict.TryGetValue(kv[1], out var p1))
-            {
-                p1 = [];
-                dict[kv[1]] = p1;
+                if (graph.ContainsKey(l)) continue;
+                graph[l] = [];
+                if (l[0] == 't') tComp.Add(l);
             }
 
-            p0.Add(kv[1]);
-            p1.Add(kv[0]);
+            graph[line[0]].Add(line[1]);
+            graph[line[1]].Add(line[0]);
         }
 
-        return dict;
+        var count = tComp.SelectMany(
+                tn =>
+                    graph[tn].SelectMany(n1 =>
+                        from n2 in graph[tn]
+                        where n1 != n2
+                        where graph[n1].Contains(n2)
+                        select (List<string>) [tn, n1, n2]))
+            .Select(g => string.Join("", g.Order()))
+            .Distinct()
+            .Count();
+
+        var maxPwd = "";
+        var nodes = graph.Keys.OrderBy(k => graph[k].Count).ToList();
+        foreach (var n1 in nodes)
+        {
+            foreach (var nb in graph[n1])
+            {
+                List<string> group =
+                [
+                    n1,
+                    nb
+                ];
+                group.AddRange(graph[n1].Where(nb2 => graph[nb].Contains(nb2)));
+
+                if (!IsFullyConnected(graph, group)) continue;
+                var pwd = string.Join(",", group.Order());
+                if (pwd.Length > maxPwd.Length)
+                {
+                    maxPwd = pwd;
+                }
+                break;
+            }
+
+        }
+
+        Console.WriteLine($"{count}");
+        Console.WriteLine($"{maxPwd}");
     }
 }
