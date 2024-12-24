@@ -130,8 +130,8 @@ public static class Solution
 
     public static void Analyse(Dictionary<string, (string lhs, string op, string rhs)> computer)
     {
-        var node = "gtk";
-        var znode = "z41";
+        var node = "kvh";
+        var znode = "z38";
         var op = computer[node];
         var zop = computer[znode];
         var lhs = computer[op.lhs];
@@ -142,13 +142,16 @@ public static class Solution
             (lhs, rhs) = (rhs, lhs);
         }
 
-        var rx = rhs.rhs;
+        var rll = rhs.lhs;
+        var rrr = rhs.rhs;
         var rl = computer[rhs.lhs];
         var rr = computer[rhs.rhs];
+        
         if (rl.op != "^")
         {
             (rr, rl) = (rl, rr);
-            rx = rhs.lhs;
+            rrr = rhs.lhs;
+            rll = rhs.rhs;
         }
         
         if (op.op != "|") { Console.WriteLine($"0: {node}: | : {op}"); }
@@ -158,14 +161,14 @@ public static class Solution
         if (!lhs.lhs.StartsWith("x") || !lhs.rhs.StartsWith("y")) { Console.WriteLine($"4: {node}: xy : {lhs}"); }
         
         if (rhs.op != "&") { Console.WriteLine($"3: {node}: & : {rhs}"); }
-        if (rhs.lhs != zop.lhs || rhs.rhs != zop.rhs) { Console.WriteLine($"5: {node}: zop {zop} : {rhs}"); }
+        if (rll != zop.lhs || rrr != zop.rhs) { Console.WriteLine($"5: {node}: zop {zop} : {rhs}"); }
 
-        if (rl.op != "^") { Console.WriteLine($"6: {rhs.lhs}: ^: {rl}"); }
-        if (rl.lhs != lhs.lhs || rl.rhs != lhs.rhs) { Console.WriteLine($"7: {rhs.lhs}: lhs {lhs} : {rl}"); }
+        if (rl.op != "^") { Console.WriteLine($"6: {rll}: ^: {rl}"); }
+        if (rl.lhs != lhs.lhs || rl.rhs != lhs.rhs) { Console.WriteLine($"7: {rll}: lhs {lhs} : {rl}"); }
         
-        if (rr.op != "|") { Console.WriteLine($"8: {rhs.rhs}: |: {rr}"); }
+        if (rr.op != "|") { Console.WriteLine($"8: {rrr}: |: {rr}"); }
 
-        node = rx;
+        node = rrr;
         Console.WriteLine(node);
     }
 
