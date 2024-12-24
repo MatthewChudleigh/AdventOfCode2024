@@ -25,6 +25,7 @@ x01 XOR y01 -> z01
 x02 OR y02 -> z02
  */
 
+using System.Collections;
 using System.Numerics;
 
 var baseDir = Environment.GetEnvironmentVariable("AOC_BaseDir");
@@ -65,23 +66,43 @@ while (queue.TryDequeue(out var d))
     }
 }
 
-BigInteger result = 0L;
+var x = Solution.ToVal('x', values);
+var y = Solution.ToVal('y', values);
+var z = Solution.ToVal('z', values);
+Console.WriteLine(x);
+Console.WriteLine(y);
+Console.WriteLine(z);
 
-var i = 0;
-var sb = new Stack<int>();
-foreach (var z in values.
-             Where(v => v.Key.StartsWith('z'))
-             .Select(v => (int.Parse(v.Key[1..]), v.Value))
-             .Where(z => z.Value > 0).OrderBy(z => z.Item1))
+Console.WriteLine(Solution.Bin(x));
+Console.WriteLine(Solution.Bin(y));
+Console.WriteLine("...");
+Console.WriteLine(Solution.Bin(x+y));
+Console.WriteLine(Solution.Bin(z));
+
+public static class Solution
 {
-    while (i < z.Item1)
+    public static BigInteger ToVal(char z, Dictionary<string, int> v)
     {
-        sb.Push(0);
-        i++;
+        BigInteger result = 0L;
+        foreach (var i in v.Where(kv => kv.Key.StartsWith(z) && kv.Value == 1).Select(kv => int.Parse(kv.Key[1..])))
+        {
+            result += BigInteger.Pow(2, i);
+        }
+
+        return result;
     }
-    sb.Push(z.Value);
-    i = z.Item1 + 1;
+
+    public static string Bin(BigInteger n)
+    {
+        var s = new Stack<char>();
+        while (n != 0)
+        {
+            s.Push((n & 0b1) == 1 ? '1' : '0');
+            n >>= 1;
+        }
+
+        return String.Join("", s);
+    }
 }
-Console.WriteLine(string.Join("",sb));
-// 64755511006320
-Console.WriteLine(result);
+
+// z12/z13
